@@ -1,0 +1,32 @@
+bin
+target
+temp
+classes
+*.bak
+*.orig
+.cache
+.project
+.classpath
+.settings
+ctags
+.lib-src
+.idea_modules
+*.swp
+.tags
+.ensime*
+kafka-install
+Procfile
+fileData/
+logs/
+.DS_Store
+*.log
+
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# SublimeText
+project.sublime-workspace
+project.sublime-project
