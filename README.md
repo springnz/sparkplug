@@ -9,9 +9,11 @@ Apache Spark is great, but not everything you need to use it successfully in pro
 This project aims to bridge the gap. In particular, it addresses two specific requirements.
 
 1. Creating data processing pipelines that are easy to reuse and test in isolation.
-2. Launching and executing Spark processes on a cluster. 
+2. Providing a lightweight mechanism for launching and executing Spark processes on a cluster. 
 
-## Spark data processing pipelines
+These two requirements are quite different. Indeed it is possible to use Sparkplug for either of them without taking advantage of the other. For example it is possible to create composable data pipelines as described below, then execute them directly, or using any other Spark cluster execution or job manager of your choice.
+
+## Data processing pipelines
 
 The key abstraction here is the `SparkOperation` monad.
 
@@ -29,7 +31,7 @@ val textRDDOperation = SparkOperation[RDD[String]] {
 }
 ```
 
-This is a simple `SparkOperation` that takes a string and returns a `RDD[String]` consisting of the words of the sentence.
+This is a simple `SparkOperation` that takes a string and returns a `RDD[String]` consisting of the words of a sentence.
 
 We can then use this `SparkOperation` to create another operation.
 
@@ -40,17 +42,17 @@ val letterCount: SparkOperation[Long] = for {
 }
 ```
 
-In this case we are counnting the number of words that contain the letter 'a'.
+In this case we are counting the number of words that contain the letter 'a'.
 
-Proceeding as in this simple example, we can create complex data processing pipelines using, amongst other things, monadic operations. 
+Proceeding as in this simple example, we can create complex data processing pipelines, mainly using monadic operations. 
 
 These include:
 
-* Bread and butter map and flatmap to compose operations (as above)
+* Bread and butter map and flatmap to compose operations (as above).
 * Combining operations (e.g. convert a tuple of `SparkOperation`s to a `SparkOperation` of tuples).
 * Sequence operations (e.g. convert a list of `SparkOperation`s to a `SparkOperation` of list). 
 
-Then once you have composed the `SparkOperation` as desired, you run in against a given `SparkContext`.
+Then once we have composed the `SparkOperation` as desired, it is against a given `SparkContext`.
 
 val answer = letterCount.run(sparkContext)
 
@@ -66,9 +68,9 @@ Splitting the process into discrete, separate operations has two main advantages
 2. They can be unit tested in isolation. There are several utilities included in the project that facilitate this. This is covered in the section on testing below.
 3. Operations can be glued together using compact functional code.
 
-Note that this pattern involves decoupling pipeline definition from pipeline execution. 
+Note that this pattern involves decoupling the pipeline definition from the pipeline execution, which enables a great deal of flexibility over how one defines pipelines and executes them. 
 
-The one drawback of this is stack dumps are not normally that meaningful. Good error handling is important.
+It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
 ## Execution on a cluster
 
@@ -83,12 +85,16 @@ Another issue is that creating assemblies can lead to all sorts of problems with
 
 A third isssue is that ideally you want the cluster to be available when a job request arrives. However there is plenty that can be set up in advance in preparation, so that when the job request arrives, there is less that can go wrong. The `spark-submit` command line execution pattern doesn't easily facilitate that.
 
+### How Sparkplug cluster execution works
+
+The use case that Sparkplug cluster execution is particularly well suited to is where your overall technology stack is Scala based, and particular if Akka is a big part of it. If you have a polyglot stack, something like the REST based [Spark Job Server](https://github.com/spark-jobserver/spark-jobserver) may be more suitable.
+
 Sparkplug launcher uses Akka remoting under the hood. Sparkplug launches jobs on the cluster using the following steps:
 
 1. The client has an `ActorSystem` running, and an execution client actor.
 2. This client invokes `spark-submit` to run an application on the server.
 3. The server starts up it's own `ActorSystem`, and once this is done, sends a message to inform the client.
-4. The service is ready for action, and listens for requests. It creates a `SparkContext`, which is then available to service request to run Spark jobs that it may receive.
+4. It creates a `SparkContext`, which is then available to service request to run Spark jobs that it may receive. The service is now ready for action. 
 5. When a request arrives at the client, it sends a message to the server to process the request.
 6. The job is then run by the server and the client is notified when it is done. The final result is streamed back to the client.
 
