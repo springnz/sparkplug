@@ -17,7 +17,7 @@ These two requirements are quite different. Indeed it is possible to use Sparkpl
 
 The key abstraction here is the `SparkOperation` monad.
 
-```
+```scala
 sealed trait SparkOperation[+A] {
   def run(ctx: SparkContext): A
 }
@@ -25,7 +25,7 @@ sealed trait SparkOperation[+A] {
 
 `SparkOperation` are typically created using the companion class. Here is the simplest possible example:
 
-```
+```scala
 val textRDDOperation = SparkOperation[RDD[String]] {
   ctx ⇒ ctx.makeRDD("There is nothing either good or bad, but thinking makes it so".split(' '))
 }
@@ -35,7 +35,7 @@ This is a simple `SparkOperation` that takes a string and returns a `RDD[String]
 
 We can then use this `SparkOperation` to create another operation.
 
-```
+```scala
 val letterCount: SparkOperation[Long] = for {
     logData ← textRDDProvider
   } yield logData.filter(_.contains("a")).count()
