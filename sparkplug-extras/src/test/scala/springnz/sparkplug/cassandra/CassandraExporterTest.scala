@@ -16,7 +16,7 @@ class CassandraExporterTest extends WordSpec with ShouldMatchers with Logging {
 
   "CassandraExporter" should {
 
-    "handle Java 8 timestamps and select rows with a given LocalDate" in new SimpleTestContext("CassandraExporterTest") {
+    "handle Java 8 timestamps and select rows with a given LocalDate" ignore new SimpleTestContext("CassandraExporterTest") {
       import DateTimeUtil._
 
       val keySpace = ConfigFactory.load().getString("cassandra.test-keyspace")

@@ -72,6 +72,10 @@ Note that this pattern involves decoupling the pipeline definition from the pipe
 
 It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
+## Wiring together `SparkOperation` components
+
+TBD
+
 ## Execution on a cluster
 
 The recommended mechanism for execution on a cluster (Java or Scala) is as follows:
@@ -98,6 +102,14 @@ Sparkplug launcher uses Akka remoting under the hood. Sparkplug launches jobs on
 5. When a request arrives at the client, it sends a message to the server to process the request.
 6. The job is then run by the server and the client is notified when it is done. The final result is streamed back to the client.
 
-The details of how to make an operation pipeline executable on the server will be documented shortly.
+The details of how to plug an operation pipeline into the cluster execution... TBD
 
-Watch this space for further details...
+## Projects
+
+SparkPlug is set up as a sbt multi-project with the following subprojects:
+
+* **sparkplug-core**: The core `SparkOperation` monad and related traits and interfaces.
+* **sparkplug-extras**: Components for data access (currently Cassandra and SQL) and utilities for testing.
+* **sparkplug-examples**: Several examples for how to create Spark pipelines. A good place to start.
+* **sparkplug-executor**: The Server side of the cluster execution component.
+* **sparkplug-launcher**: The Client side of the cluster execution component.

@@ -31,7 +31,7 @@ trait SparkProcess[+A] {
   def apply(): SparkOperation[A]
 }
 
-trait SparkFactory {
+trait SparkPlugin {
   def apply(input: Any): SparkOperation[Any]
 }
 

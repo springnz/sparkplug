@@ -1,6 +1,6 @@
 package springnz.sparkplug.examples
 
-import springnz.sparkplug.core.SparkFactory
+import springnz.sparkplug.core.SparkPlugin
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import springnz.sparkplug.core._
@@ -21,7 +21,7 @@ object LetterCount extends LocalExecutable("LetterCount") {
   }
 }
 
-class LetterCountFactory extends LetterCount with SparkFactory {
+class LetterCountPlugin extends LetterCount with SparkPlugin {
   override def apply(input: Any): SparkOperation[(Long, Long)] = super.apply()
 }
 

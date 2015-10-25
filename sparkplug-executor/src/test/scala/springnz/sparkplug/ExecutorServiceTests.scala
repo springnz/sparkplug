@@ -22,7 +22,7 @@ class ExecutorServiceTests(_system: ActorSystem)
 
   "successfuly execute a job request" in new Fixture(self, "client2") {
     val requestBroker = system.actorSelection("/user/requestBroker")
-    val request = JobRequest("springnz.sparkplug.examples.LetterCountFactory", None)
+    val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
     requestBroker ! request
     expectMsg[JobSuccess](3.seconds, JobSuccess(request, (2, 2)))
   }
