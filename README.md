@@ -113,3 +113,32 @@ SparkPlug is set up as a sbt multi-project with the following subprojects:
 * **sparkplug-examples**: Several examples for how to create Spark pipelines. A good place to start.
 * **sparkplug-executor**: The Server side of the cluster execution component.
 * **sparkplug-launcher**: The Client side of the cluster execution component.
+
+## Build and Test
+
+There is a build dependency on [Spring NZ util-lib](https://github.com/springnz/util-lib). The easist is to clone the repository and run `sbt publish` (or `sbt publishLocal`) to publish to your (local) repository.
+
+Then clone the repository and proceed as normal.
+
+### Environment variables
+
+Environment variables may be required, particular for data connections:
+
+#### Spark environment variables (for cluster execution)
+
+* **SPARK_HOME**: Spark home folder
+* **SPARK_EVENTLOG_ENABLED**: Used to turn on event logging for the Spark WebUI.
+* **SPARK_EVENTLOG_DIR**: Location to log to for the Spark WebUI events.
+
+#### Spark Remote Execution
+
+* **SPARK_EXECUTOR_CORES**: Number of cores used per Spark executor (default 1).
+* **SPARK_EXECUTOR_MEMORY**: Memory assigned to Spark executor (default 1g).
+* **SPARK_DRIVER_MEMORY**: Memory assigned to Spark driver process (default 1g).
+
+#### Cassandra Connections:
+
+* **SPARK_CASSANDRA_CONNECTION_HOST**: Host name for Cassandra connections (defaults to 127.0.0.1)
+* **SPARK_CASSANDRA_AUTH_USERNAME**: Username for authenticated cassandra connections
+* **SPARK_CASSANDRA_AUTH_PASSWORD**: Password for authenticated cassandra connections
+
