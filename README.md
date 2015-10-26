@@ -126,19 +126,19 @@ Environment variables may be required, particular for data connections:
 
 #### Spark environment variables (for cluster execution)
 
-* **SPARK_HOME**: Spark home folder
-* **SPARK_EVENTLOG_ENABLED**: Used to turn on event logging for the Spark WebUI.
-* **SPARK_EVENTLOG_DIR**: Location to log to for the Spark WebUI events.
+* *SPARK_HOME*: Spark home folder
+* *SPARK_EVENTLOG_ENABLED*: Used to turn on event logging for the Spark WebUI.
+* *SPARK_EVENTLOG_DIR*: Location to log to for the Spark WebUI events.
 
 #### Spark Remote Execution
 
-* **SPARK_EXECUTOR_CORES**: Number of cores used per Spark executor (default 1).
-* **SPARK_EXECUTOR_MEMORY**: Memory assigned to Spark executor (default 1g).
-* **SPARK_DRIVER_MEMORY**: Memory assigned to Spark driver process (default 1g).
+* *SPARK_EXECUTOR_CORES*: Number of cores used per Spark executor (default 1).
+* *SPARK_EXECUTOR_MEMORY*: Memory assigned to Spark executor (default 1g).
+* *SPARK_DRIVER_MEMORY*: Memory assigned to Spark driver process (default 1g).
 
 #### Cassandra Connections:
 
-* **SPARK_CASSANDRA_CONNECTION_HOST**: Host name for Cassandra connections (defaults to 127.0.0.1)
-* **SPARK_CASSANDRA_AUTH_USERNAME**: Username for authenticated cassandra connections
-* **SPARK_CASSANDRA_AUTH_PASSWORD**: Password for authenticated cassandra connections
+* *SPARK_CASSANDRA_CONNECTION_HOST*: Host name for Cassandra connections (defaults to 127.0.0.1)
+* *SPARK_CASSANDRA_AUTH_USERNAME*: Username for authenticated cassandra connections
+* *SPARK_CASSANDRA_AUTH_PASSWORD*: Password for authenticated cassandra connections
 
