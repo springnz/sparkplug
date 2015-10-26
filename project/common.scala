@@ -20,7 +20,7 @@ object Common {
     Resolver.bintrayRepo("pathikrit", "maven"))
 
   lazy val commonSettings = Seq(
-    organization := "ylabs",
+    organization := "springnz",
     scalaVersion := "2.11.7",
     scalacOptions := Seq("-Xlint", "-deprecation"),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
