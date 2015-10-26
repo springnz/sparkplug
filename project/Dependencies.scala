@@ -45,7 +45,6 @@ object Dependencies {
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.4.1"
 
   // SpringNZ projects
-  val neonContracts = "ylabs" %% "neon-contracts" % "1.0.0"
   val utilLib = "springnz" %% "util-lib" % "2.3.0"
 
   // Share test
