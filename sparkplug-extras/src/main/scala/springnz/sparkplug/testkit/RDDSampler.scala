@@ -19,6 +19,20 @@ case class RDDSamplerParams(
 
 object RDDSampler extends Logging {
 
+  val cassandraParams = RDDSamplerParams(
+    testerFraction = 0.0001,
+    scaleParam = 3000.0,
+    scalePower = 0.30102999566398,
+    minimum = 1000000.0,
+    sequential = false)
+
+  val derivedRDDParams = RDDSamplerParams(
+    testerFraction = 0.1,
+    scaleParam = 1.0,
+    scalePower = 1.0,
+    minimum = 1000000.0,
+    sequential = false)
+
   val config = ConfigFactory.load()
 
   private[sparkplug] def shrinkFactor(
@@ -34,6 +48,7 @@ object RDDSampler extends Logging {
     min(if (minimum > 0) max(calcFrac, minimum / fullLength) else calcFrac, 1.0)
   }
 
+  @deprecated("Configuration in case classes", "")
   private[sparkplug] def sample[A: ClassTag](rdd: RDD[A], dataSourceType: String): RDD[A] = {
     val testerFraction = config.getDouble(s"sampling.$dataSourceType.testerfraction")
     val scaleParam = config.getDouble(s"sampling.$dataSourceType.scaleparam")
@@ -69,10 +84,13 @@ object RDDSampler extends Logging {
       }
     }
 
-    if (params.scaleParam == 1.0 && params.scalePower == 1.0)
+    if (params.scaleParam == 1.0 && params.scalePower == 1.0) {
+      log.info("Not sampling RDD since scaleParam==scalePower==1.0")
       rdd
-    else
+    } else {
+      log.info(s"Sampling RDD with $params ...")
       getSample(params)
+    }
   }
-
 }
+

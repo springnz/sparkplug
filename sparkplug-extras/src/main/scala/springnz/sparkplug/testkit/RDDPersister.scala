@@ -10,6 +10,7 @@ import scala.reflect.ClassTag
 
 object RDDPersister extends Logging {
 
+  @deprecated()
   def cacheFileNameAndStatus[A: ClassTag: RowReaderFactory: ValidRDDType](
     projectFolder: String, dataSourceType: String, dataSourceName: String, processName: String): (String, Boolean) = {
 
@@ -24,7 +25,7 @@ object RDDPersister extends Logging {
     (tablePath.fullPath, fileExists)
   }
 
-  def persistSampledRDD[A: ClassTag: RowReaderFactory: ValidRDDType](
+  def persistRDD[A: ClassTag: RowReaderFactory: ValidRDDType](
     tablePath: String, rdd: RDD[A], rddDestPartitions: Int = 10): RDD[A] = {
     log.debug(s"Saving RDD to $tablePath ...")
     // reduce the number of partitions
@@ -33,4 +34,11 @@ object RDDPersister extends Logging {
     repartitionedRdd
   }
 
+  def getPath(projectName: String, rddName: String): File =
+    "." / projectName / "src" / "test" / "resources" / "testdata" / rddName
+
+  def checkIfPersistedRDDExists[A: ClassTag: RowReaderFactory: ValidRDDType](projectDirectory: String, rddName: String) =
+    getPath(projectDirectory, rddName).exists
+
 }
+
