@@ -4,7 +4,7 @@ import Common._
 import Dependencies._
 import xerial.sbt.Pack._
 
-name := "spark-plug"
+name := "sparkplug"
 
 releaseVersionBump := sbtrelease.Version.Bump.Bugfix
 

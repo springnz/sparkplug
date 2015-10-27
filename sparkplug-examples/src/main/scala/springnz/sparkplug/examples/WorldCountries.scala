@@ -1,34 +1,23 @@
 package springnz.sparkplug.examples
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import play.api.libs.json._
 import springnz.sparkplug.core._
-import springnz.sparkplug.data.{ SparkRDDProcess, JdbcDataFrameSource }
-import springnz.sparkplug.examples.WorldCountries.DataSourceFunction
+import springnz.sparkplug.data.JdbcDataFrameSource
 import springnz.sparkplug.examples.WorldDataTypes._
-import springnz.util.Logging
 
-object WorldCountries extends LocalExecutable("WorldCountries") with WorldPipeline {
-  def main(args: Array[String]): Unit = {
-    val executor = new SparkExecutor {
-      override val configurer: Configurer = new LocalConfigurer("WorldCountries")
-    }
-
-    executor.execute(countriesQuery())
-  }
-
-  class DataSourceFunction extends (String ⇒ SparkOperation[DataFrame]) {
-    def apply(table: String) = (new JdbcDataFrameSource("world", table))()
-  }
-
-}
-
-class WorldCountries(datasource: DataSourceFunction)
-    extends SparkRDDProcess[Country] with Logging {
+trait WorldPipeline {
   import SparkPimpers._
 
-  def apply() = for {
-    dataFrame ← datasource("Country")
+  class DataSourceFunction(table: String) extends SparkProcess[DataFrame] {
+    def apply() = (new JdbcDataFrameSource("world", table))()
+  }
+
+  def dataSource: SparkProcess[DataFrame] = new DataSourceFunction("Country")
+
+  lazy val countriesOperation: SparkOperation[RDD[Country]] = for {
+    dataFrame ← dataSource()
   } yield {
     dataFrame.toJSON.mapWithFilter {
       jsonString ⇒
@@ -36,12 +25,5 @@ class WorldCountries(datasource: DataSourceFunction)
         country.asOpt
     }
   }
-}
-
-trait WorldPipeline {
-  import com.softwaremill.macwire._
-
-  lazy val dataSourceFunction: DataSourceFunction = wire[DataSourceFunction]
-  lazy val countriesQuery: WorldCountries = wire[WorldCountries]
 }
 

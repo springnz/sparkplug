@@ -1,9 +1,8 @@
 package springnz.sparkplug.examples
 
-import org.apache.spark.rdd.RDD
 import springnz.sparkplug.core.SparkPimpers._
 import springnz.sparkplug.core._
-import springnz.sparkplug.data.{ SparkDataSource, SparkRDDProcess }
+import springnz.sparkplug.data.SparkDataSource
 import springnz.sparkplug.examples.WeatherDataTypes._
 import springnz.util.Logging
 
@@ -12,46 +11,31 @@ object WeatherDataJoin extends LocalExecutable("WeatherDataJoin") with WeatherDa
     val executor = new SparkExecutor {
       override val configurer: Configurer = new LocalConfigurer("WeatherDataJoin")
     }
-    executor.execute(weatherDataJoin())
+    executor.execute(weatherDataJoin)
   }
 }
 
-class StationFeed(stationDataSource: SparkDataSource[StationData])
-    extends SparkRDDProcess[(String, StationData)] with Logging {
+trait WeatherDataJoinPipeline extends Logging {
 
-  override def apply() =
-    for (inputRDD ← stationDataSource()) yield {
-      inputRDD.map(data ⇒ (data.id, data))
-    }
-}
+  lazy val rawWeatherDataSource: SparkDataSource[RawWeatherData] = new RawWeatherSource
+  lazy val stationSource: SparkDataSource[StationData] = new StationSource
 
-class RawWeatherFeed(rawWeatherDataSource: SparkDataSource[RawWeatherData])
-    extends SparkRDDProcess[(String, RawWeatherData)] with Logging {
+  lazy val rawWeatherFeed = rawWeatherDataSource().map {
+    inputRDD ⇒ inputRDD.mapWithFilter { data ⇒ if (data.wsid.nonEmpty) Some((data.wsid, data)) else None }
+  }
 
-  override def apply(): SparkOperation[RDD[(String, RawWeatherData)]] =
-    rawWeatherDataSource().map {
-      inputRDD ⇒ inputRDD.mapWithFilter { data ⇒ if (data.wsid.nonEmpty) Some((data.wsid, data)) else None }
-    }
-}
+  lazy val stationFeed = for (inputRDD ← stationSource()) yield {
+    inputRDD.map(data ⇒ (data.id, data))
+  }
 
-class WeatherDataJoin(stationFeed: StationFeed, rawWeatherFeed: RawWeatherFeed) extends Logging {
-  def apply() = for {
-    stationRDD ← stationFeed()
-    rawWeatherRDD ← rawWeatherFeed()
+  lazy val weatherDataJoin = for {
+    stationRDD ← stationFeed
+    rawWeatherRDD ← rawWeatherFeed
   } yield {
     val joinedRDD = stationRDD.join(rawWeatherRDD)
     log.debug(s"$joinedRDD.count rows had the same station id")
     joinedRDD
   }
-}
 
-trait WeatherDataJoinPipeline {
-  import com.softwaremill.macwire._
-
-  lazy val rawWeatherDataSource: SparkDataSource[RawWeatherData] = wire[RawWeatherSource]
-  lazy val stationSource: SparkDataSource[StationData] = wire[StationSource]
-  lazy val rawWeatherFeed = wire[RawWeatherFeed]
-  lazy val stationFeed = wire[StationFeed]
-  lazy val weatherDataJoin = wire[WeatherDataJoin]
 }
 

@@ -4,10 +4,10 @@ import java.time.{ LocalDate, LocalDateTime }
 
 import com.datastax.spark.connector._
 import com.typesafe.config.ConfigFactory
-import springnz.sparkplug.SimpleTestContext
 import springnz.sparkplug.core.SparkOperation
 import org.apache.spark.rdd.RDD
 import org.scalatest._
+import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.{ DateTimeUtil, Logging }
 
 case class TestRow(id: Int, localDate: LocalDate, localDateTime: LocalDateTime)

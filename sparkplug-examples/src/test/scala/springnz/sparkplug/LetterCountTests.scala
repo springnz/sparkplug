@@ -1,6 +1,7 @@
 package springnz.sparkplug
 
 import springnz.sparkplug.examples._
+import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.Logging
 import org.scalatest.{ ShouldMatchers, WordSpec }
 

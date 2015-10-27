@@ -21,7 +21,7 @@ object Dependencies {
 
   // MacWire
   val macWireMacros = "com.softwaremill.macwire" %% "macros" % "1.0.5"
-  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "1.0.5"
+  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "1.0.5"te
 
   // Akka Dependencies
    val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
@@ -57,7 +57,7 @@ object Dependencies {
 
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
   val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver)
-  val macWireDependencies = Seq(macWireMacros, macWireRuntime)
+//  val macWireDependencies = Seq(macWireMacros, macWireRuntime)
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote)
 
@@ -72,7 +72,7 @@ object Dependencies {
     sharedDependencies
 
   val sparkExampleLibDependencies = sparkExtraLibDependencies ++
-    macWireDependencies ++
+//    macWireDependencies ++
     logBackDependencies
 
   val sparkExecutorLibDependencies = sparkCoreLibDependencies ++

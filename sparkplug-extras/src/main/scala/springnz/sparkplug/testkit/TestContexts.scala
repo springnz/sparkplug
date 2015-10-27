@@ -1,4 +1,4 @@
-package springnz.sparkplug
+package springnz.sparkplug.testkit
 
 import springnz.sparkplug.core._
 
