@@ -1,25 +1,20 @@
 package springnz.sparkplug.cassandra
 
-import com.datastax.spark.connector._
 import com.datastax.spark.connector.rdd.ValidRDDType
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory
-import springnz.sparkplug.cassandra.CassandraTypes.KeySpace
+import org.apache.spark.rdd.RDD
+import springnz.sparkplug.cassandra.CassandraTypes.{ Table, KeySpace }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.data.SparkDataSource
-import org.apache.spark.rdd.RDD
 import springnz.util.Logging
 
 import scala.reflect.ClassTag
 
-class CassandraRDDSource[A: ClassTag: RowReaderFactory: ValidRDDType](keySpace: KeySpace, table: String)
+@deprecated("Use CassandraRDDFetcher", "")
+class CassandraRDDSource[A: ClassTag: RowReaderFactory: ValidRDDType](keySpace: KeySpace, table: Table)
     extends SparkDataSource[A] with Logging {
 
-  CustomTypeConverters.registerTimeConverters()
+  val fetcher = new CassandraRDDFetcher[A](keySpace, table)
 
-  override def apply(): SparkOperation[RDD[A]] =
-    SparkOperation { ctx ⇒
-      log.info(s"Fetching RDD from keyspace='$keySpace' table='$table'...")
-      ctx.cassandraTable[A](keySpace.keySpace, table)
-    }
+  override def apply(): SparkOperation[RDD[A]] = fetcher.selectAll()
 }
-
