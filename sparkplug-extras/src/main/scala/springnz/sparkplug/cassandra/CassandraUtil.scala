@@ -1,9 +1,15 @@
 package springnz.sparkplug.cassandra
 
 import com.datastax.driver.core.ResultSet
+import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.rdd.reader.RowReaderFactory
+import com.datastax.spark.connector.rdd.{ CassandraTableScanRDD, ValidRDDType }
 import com.typesafe.scalalogging.Logger
+import springnz.sparkplug.cassandra.CassandraTypes.{ KeySpace, Table }
 import springnz.sparkplug.core.SparkOperation
+
+import scala.reflect.ClassTag
 
 object CassandraUtil {
 
@@ -23,4 +29,12 @@ object CassandraUtil {
       }
       resultSet.one().getLong(0)
     }
+
+  def fetchTable[A: ClassTag: RowReaderFactory: ValidRDDType](
+    keySpace: KeySpace, table: Table)(implicit log: Logger): SparkOperation[CassandraTableScanRDD[A]] = {
+    SparkOperation { ctx ⇒
+      log.info(s"Selecting * from table $keySpace.$table ...")
+      ctx.cassandraTable[A](keySpace.name, table.name)
+    }
+  }
 }
