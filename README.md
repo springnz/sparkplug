@@ -1,6 +1,6 @@
-# Sparkplug
+# ![Sparkplug](https://raw.githubusercontent.com/springnz/sparkplug/master/logos/sparkplug2.jpg "Sparkplug framework for functional Spark") Sparkplug 
 
-**A framework for creating composable and pluggable data processing pipelines using Apache Spark, and running them on a cluster.**
+**A framework for creating composable and pluggable data processing pipelines using [Apache Spark](http://spark.apache.org "Apache Spark"), and running them on a cluster.**
 
 *Please note that this project is early stage work in progress, and will be subject to some breaking changes and aggressive refactoring. It will however be getting a lot of love in the next couple of months.*
 
