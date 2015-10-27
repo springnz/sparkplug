@@ -8,11 +8,10 @@
         </encoder>
     </appender>
 
-    <logger name="org.apache.spark" level="ERROR"/>
-    <logger name="org.elasticsearch" level="INFO"/>
+    <logger name="org.apache.spark" level="WARN"/>
+    <logger name="org.elasticsearch" level="WARN"/>
 
-    <logger name="nz.spring" level="INFO"/>
-    <logger name="ylabs" level="INFO"/>
+    <logger name="springnz" level="INFO"/>
     <logger name="akka" level="INFO"/>
 
     <root level="ERROR">

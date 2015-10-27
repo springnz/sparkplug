@@ -7,23 +7,47 @@ import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.sparklauncher.Launcher
 import springnz.util.Logging
 
+import scala.concurrent._
+import scala.util.Success
+
 object SparkClient {
 
   // Constants
   val actorSystemName = "SparkActorSystem"
   val clientActorName = "sparkClient"
-  val configSectionName = "sparkAkkaClient"
+  val configSectionName = "sparkPlugAkkaClient"
   val jarPath = "target/pack/lib"
-  val mainJar = s"$jarPath/spark-executor_2.11-0.2.4-SNAPSHOT.jar"
+  val mainJar = s"$jarPath/sparkplug-executor_2.11-0.2.6-SNAPSHOT.jar"
   val mainClass = "springnz.sparkplug.executor.ExecutorService"
 
   def main(args: Array[String]): Unit = {
-    val system = ActorSystem(actorSystemName, ConfigFactory.load().getConfig(configSectionName))
-    system.actorOf(Props(new SparkClient), name = clientActorName)
+    new SparkClient
   }
 }
 
-class SparkClient() extends Actor with PreStart with Logging {
+trait SparkClientExecutor {
+  def execute[A](jarPath: String, pluginJar: String, pluginClass: String): Future[A]
+
+}
+
+class SparkClient {
+  import SparkClient._
+
+  val readyPromise = Promise[ActorRef]()
+
+  val actorSystem = ActorSystem(actorSystemName, ConfigFactory.load().getConfig(configSectionName))
+  actorSystem.actorOf(Props(new SparkClientActor(readyPromise)), name = clientActorName)
+
+  val clientActor: Future[ActorRef] = readyPromise.future
+
+  implicit val ec = actorSystem.dispatcher
+  clientActor.map {
+    actorRef ⇒
+      actorRef ! JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
+  }
+}
+
+class SparkClientActor(readyPromise: Promise[ActorRef]) extends Actor with PreStart with Logging {
   import SparkClient._
 
   override def preStart() = {
@@ -41,13 +65,11 @@ class SparkClient() extends Actor with PreStart with Logging {
   override def receive: Receive = {
     case ServerReady ⇒
       val broker = sender
-      context.become(waitForRequests(broker, 5))
-      sendJobRequest(broker)
+      context.become(waitForRequests(broker))
+      readyPromise.complete(Success(self))
   }
 
-  def sendJobRequest(broker: ActorRef) = self.tell(JobRequest("springnz.sparkplug.examples.LetterCountFactory", None), broker)
-
-  def waitForRequests(broker: ActorRef, count: Int): Receive = {
+  def waitForRequests(broker: ActorRef): Receive = {
 
     case request: JobRequest ⇒
       log.info(s"ClientExecutor received from sender: $sender")
@@ -61,11 +83,7 @@ class SparkClient() extends Actor with PreStart with Logging {
     case JobSuccess(jobRequest, result) ⇒
       log.info(s"Received Result from sender: $sender")
       log.info(s"Result value: $result")
-      if (count > 0) {
-        context.become(waitForRequests(broker, count - 1))
-        sendJobRequest(broker)
-      } else
-        self ! ShutDown
+      self ! ShutDown
   }
 }
 
