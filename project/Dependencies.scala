@@ -21,7 +21,7 @@ object Dependencies {
 
   // MacWire
   val macWireMacros = "com.softwaremill.macwire" %% "macros" % "1.0.5"
-  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "1.0.5"te
+  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "1.0.5"
 
   // Akka Dependencies
    val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
