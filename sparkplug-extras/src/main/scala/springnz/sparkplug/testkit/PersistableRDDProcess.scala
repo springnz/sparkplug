@@ -8,6 +8,7 @@ import springnz.util.Logging
 
 import scala.reflect.ClassTag
 
+@deprecated()
 class PersistableRDDProcess[A: ClassTag: RowReaderFactory: ValidRDDType](
   projectFolder: String, processName: String, takeSample: Boolean = true)(rddProcess: SparkRDDProcess[A])
     extends SparkRDDProcess[A] with Logging {
@@ -29,7 +30,7 @@ class PersistableRDDProcess[A: ClassTag: RowReaderFactory: ValidRDDType](
         log.info("Taking sample ...")
         sample(rdd, dataSourceType)
       } else rdd
-      persistSampledRDD(tablePath, usedSample)
+      persistRDD(tablePath, usedSample)
     }
 
   }

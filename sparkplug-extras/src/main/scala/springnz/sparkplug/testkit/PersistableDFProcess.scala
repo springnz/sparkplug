@@ -26,7 +26,7 @@ class PersistableDFProcess(projectFolder: String, processName: String, mustSampl
       val df = operation.run(ctx)
       val rdd: RDD[String] = df.toJSON
       val sampledRdd = if (mustSample) sample(rdd, dataSourceType) else rdd
-      persistSampledRDD(tablePath, sampledRdd)
+      persistRDD(tablePath, sampledRdd)
     }
     sqlContext.read.json(sampledRDD)
   }
