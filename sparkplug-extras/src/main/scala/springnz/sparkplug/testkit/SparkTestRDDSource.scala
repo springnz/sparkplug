@@ -56,9 +56,10 @@ class SparkTestRDDSource[A: ClassTag: RowReaderFactory: ValidRDDType](
 
 object SparkTestRDDSource {
 
-  def load[A: ClassTag: RowReaderFactory: ValidRDDType](projectName: String, rDDName: String): SparkOperation[RDD[A]] =
+  def load[A: ClassTag: RowReaderFactory: ValidRDDType](
+    rDDName: String)(implicit projectName: ProjectName): SparkOperation[RDD[A]] =
     SparkOperation { ctx ⇒
-      val path = RDDPersister.getPath(projectName, rDDName)
+      val path = RDDPersister.getPath(projectName.name, rDDName)
       ctx.objectFile[A](path.fullPath)
     }
 

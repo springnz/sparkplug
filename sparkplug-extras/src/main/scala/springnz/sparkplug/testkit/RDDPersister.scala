@@ -37,8 +37,8 @@ object RDDPersister extends Logging {
   def getPath(projectName: String, rddName: String): File =
     "." / projectName / "src" / "test" / "resources" / "testdata" / rddName
 
-  def checkIfPersistedRDDExists[A: ClassTag: RowReaderFactory: ValidRDDType](projectDirectory: String, rddName: String) =
-    getPath(projectDirectory, rddName).exists
+  def checkIfPersistedRDDExists[A: ClassTag: RowReaderFactory: ValidRDDType](projectName: String, rddName: String) =
+    getPath(projectName, rddName).exists
 
 }
 

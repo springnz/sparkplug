@@ -14,17 +14,16 @@ object RDDTestSampleExtensions {
     def sample(params: RDDSamplerParams): RDD[A] =
       RDDSampler.sample(rdd, params)
 
-    def persist(projectName: String, rddName: String): RDD[A] = {
-      val path = RDDPersister.getPath(projectName, rddName).fullPath
+    def persist(rddName: String)(implicit projectName: ProjectName): RDD[A] = {
+      val path = RDDPersister.getPath(projectName.name, rddName).fullPath
       RDDPersister.persistRDD(path, rdd)
     }
 
     def sampleAndPersist(
-      projectName: String,
       rddName: String,
       params: RDDSamplerParams,
-      overwrite: Boolean = false)(implicit log: Logger): RDD[A] = {
-      val path = RDDPersister.getPath(projectName, rddName)
+      overwrite: Boolean = false)(implicit projectName: ProjectName, log: Logger): RDD[A] = {
+      val path = RDDPersister.getPath(projectName.name, rddName)
       if (overwrite || (!overwrite && !path.exists)) {
         val rddSample = sample(params)
         RDDPersister.persistRDD(path.fullPath, rddSample)
