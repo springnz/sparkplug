@@ -2,7 +2,7 @@ package springnz.sparkplug
 
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{ ShouldMatchers, WordSpec }
-import springnz.sparkplug.testkit.RDDSampler
+import springnz.sparkplug.testkit.{ RDDSampler, RDDSamplerParams }
 import springnz.util.Logging
 
 class RDDSamplerTest extends WordSpec with ShouldMatchers with PropertyChecks with Logging {
@@ -37,7 +37,7 @@ class RDDSamplerTest extends WordSpec with ShouldMatchers with PropertyChecks wi
         ShrinkParams(testerFrac, scaleFactor, power, 100000, 10000000), // 100MB data, floored at 10MB
         ShrinkParams(testerFrac, scaleFactor, power, 10000, 10000000), // 10MB data, floored at 10MB
         ShrinkParams(testerFrac, scaleFactor, power, 1000, 10000000) // 1MB data, floored at 10MB
-        )
+      )
       val shrinkFactor = shrinkParamList map getShrinkFactorAndSize
 
       shrinkFactor should be(List(

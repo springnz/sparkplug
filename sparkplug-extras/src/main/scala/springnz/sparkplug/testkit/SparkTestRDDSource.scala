@@ -3,8 +3,8 @@ package springnz.sparkplug.testkit
 import com.datastax.spark.connector.rdd.ValidRDDType
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory
 import com.typesafe.config.ConfigFactory
-import springnz.sparkplug.cassandra.CustomTypeConverters
 import org.apache.spark.rdd.RDD
+import springnz.sparkplug.cassandra.CustomTypeConverters
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.data.SparkDataSource
 import springnz.util.Logging
@@ -12,6 +12,7 @@ import springnz.util.Logging
 import scala.reflect.ClassTag
 import scala.util.Try
 
+@deprecated()
 class SparkTestRDDSource[A: ClassTag: RowReaderFactory: ValidRDDType](
   sparkDsConstructor: ⇒ SparkDataSource[A])(
     projectFolder: String,
@@ -48,7 +49,17 @@ class SparkTestRDDSource[A: ClassTag: RowReaderFactory: ValidRDDType](
         sample(rddTry.get, dataSourceType)
       } else rddTry.get
 
-      if (takeSample && persistSample) persistSampledRDD(tablePath, usedSample) else usedSample
+      if (takeSample && persistSample) persistRDD(tablePath, usedSample) else usedSample
     }
   }
+}
+
+object SparkTestRDDSource {
+
+  def load[A: ClassTag: RowReaderFactory: ValidRDDType](projectName: String, rDDName: String): SparkOperation[RDD[A]] =
+    SparkOperation { ctx ⇒
+      val path = RDDPersister.getPath(projectName, rDDName)
+      ctx.objectFile[A](path.fullPath)
+    }
+
 }
