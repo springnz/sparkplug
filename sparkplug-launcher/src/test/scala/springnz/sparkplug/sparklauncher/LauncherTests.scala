@@ -13,8 +13,8 @@ class LauncherTests extends WordSpec with ShouldMatchers with Logging {
 
   "simple spark launch" should {
     "launch spark letter count process (without Akka)" in {
-      val launcher = Launcher.apply("", "target/pack/lib", "target/pack/lib/spark-lib_2.11-0.2.6-SNAPSHOT.jar", "springnz.sparkplug.examples.LetterCount")
-      val result = Await.result(launcher.get, 60 seconds)
+      val launcher = Launcher.launch("", "target/pack/lib", "target/pack/lib/spark-lib_2.11-0.2.6-SNAPSHOT.jar", "springnz.sparkplug.examples.LetterCount")
+      val result = Await.result(launcher.get, 10 seconds)
 
       // this way of executing does not return anything
       result shouldBe (())
@@ -27,6 +27,7 @@ trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
   var executor: ClientExecutor = null
 
   override def beforeEach() {
+    Thread.sleep(1000)
     try executor = ClientExecutor.create()
     finally super.beforeEach()
   }
@@ -47,16 +48,25 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
   "client executor" should {
     "Calculate a single job" in {
       val future = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
-      val result = Await.result(future, 120 seconds)
+      val result = Await.result(future, 20 seconds)
       result shouldBe ((2, 2))
-
     }
 
     "Handle an error in a job request" in {
       val future = executor.execute[Any]("springnz.sparkplug.examples.InvalidPluginName", None)
       intercept[ClassNotFoundException] {
-        Await.result(future, 120 seconds)
+        Await.result(future, 20 seconds)
       }
+    }
+
+    "Still carry on working after a failure" in {
+      val futureError = executor.execute[Any]("springnz.sparkplug.examples.InvalidPluginName", None)
+      intercept[ClassNotFoundException] {
+        Await.result(futureError, 20 seconds)
+      }
+      val futureOk = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val result = Await.result(futureOk, 20 seconds)
+      result shouldBe ((2, 2))
     }
 
     "Calculate a sequence of job requests in parallel" in {
@@ -64,7 +74,7 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
 
       implicit val ec = scala.concurrent.ExecutionContext.global
       val sequence: Future[List[Any]] = Future.sequence(futures)
-      val results = Await.result(sequence, 120 seconds)
+      val results = Await.result(sequence, 30 seconds)
 
       // this way of executing does not return anything
       results shouldBe a[List[_]]

@@ -8,6 +8,7 @@ object MessageTypes {
   case object ServerReady
   case object ShutDown
 
+  case class ServerError(reason: Throwable)
   case class JobRequest(factoryClassName: String, data: Option[Any] = None)
 
   case class JobSuccess(jobRequest: JobRequest, response: Any)

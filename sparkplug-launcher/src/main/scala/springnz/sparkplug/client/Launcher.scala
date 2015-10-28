@@ -32,7 +32,7 @@ object Launcher extends Logging {
     future
   }
 
-  def apply(clientAkkaAddress: String, jarPath: String, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
+  def launch(clientAkkaAddress: String, jarPath: String, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
     val userDir = root / System.getProperty("user.dir")
     val fullMainJar = (userDir / jarPath / mainJar).fullPath
@@ -41,8 +41,6 @@ object Launcher extends Logging {
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrSome("SPARK_MASTER", Some(s"spark://${InetAddress.getLocalHost.getHostAddress}:7077"))
-
-    val v = sys.env
 
     val appName = mainClass.split('.').last
 

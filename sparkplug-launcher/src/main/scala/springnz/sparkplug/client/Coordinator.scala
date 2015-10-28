@@ -8,7 +8,7 @@ import springnz.sparkplug.executor.MessageTypes._
 import springnz.util.Logging
 
 import scala.concurrent._
-import scala.util.Success
+import scala.util.{ Try, Success }
 
 object Coordinator {
   case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
@@ -22,12 +22,22 @@ class Coordinator(readyPromise: Promise[ActorRef]) extends Actor with PreStart w
   import Constants._
 
   override def preStart() = {
-    val config = ConfigFactory.load()
-    val hostName = config.getString(s"$defaultConfigSectionName.akka.remote.netty.tcp.hostname")
-    val port = config.getInt(s"$defaultConfigSectionName.akka.remote.netty.tcp.port")
-    val clientAkkaAddress = s"akka.tcp://$actorSystemName@$hostName:$port/user/$clientActorName"
-
-    Launcher(clientAkkaAddress, jarPath, mainJar, mainClass)
+    val launchTry: Try[Future[Unit]] = Try {
+      val config = ConfigFactory.load()
+      val hostName = config.getString(s"$defaultConfigSectionName.akka.remote.netty.tcp.hostname")
+      val port = config.getInt(s"$defaultConfigSectionName.akka.remote.netty.tcp.port")
+      val clientPath = context.self.path.toString
+      val localPath = clientPath.substring(clientPath.indexOf("/user/"))
+      val clientAkkaAddress = s"akka.tcp://$actorSystemName@$hostName:$port$localPath"
+      Launcher.launch(clientAkkaAddress, jarPath, mainJar, mainClass).get
+    }
+    if (launchTry.isFailure) {
+      val reason = launchTry.failed.get
+      log.error(s"Error was caught with in Coordinator preStart: ${reason.toString}")
+      context.parent ! ServerError(reason)
+      readyPromise.failure(reason)
+      self ! PoisonPill
+    }
   }
 
   override def receive: Receive = {
