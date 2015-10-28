@@ -10,14 +10,11 @@ import better.files._
 
 import scala.util.Try
 
-object LetterCount extends LocalExecutable("LetterCount") {
+object LetterCount extends LocalExecutable("LetterCount") with Logging {
   def main(args: Array[String]): Unit = {
-    s"StartLetterCount: ${DateTime.now()}" >>: (home / "testfile.txt")
-
+    log.info(s"StartLetterCount: ${DateTime.now()}")
     val result: Try[(Long, Long)] = executor.execute((new LetterCount)())
-
-    s"result = ${result.get}" >>: (home / "testfile.txt")
-    s"goodbye: ${DateTime.now()}\n" >>: (home / "testfile.txt")
+    log.info(s"Result of LetterCount.main: $result")
   }
 }
 

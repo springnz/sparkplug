@@ -1,4 +1,4 @@
-package springnz.sparkplug.sparklauncher
+package springnz.sparkplug.client
 
 import java.net.InetAddress
 
@@ -32,19 +32,17 @@ object Launcher extends Logging {
     future
   }
 
-  def apply(sparkClientAkkaAddress: String,
-    mainJar: String,
-    mainClass: String,
-    extraJarFolder: String,
-    sendJars: Boolean = true): Try[Future[Unit]] = Try {
+  def apply(clientAkkaAddress: String, jarPath: String, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
     val userDir = root / System.getProperty("user.dir")
-    val fullMainJar = (userDir / mainJar).fullPath
-    val extraJarPath = userDir / extraJarFolder
+    val fullMainJar = (userDir / jarPath / mainJar).fullPath
+    val extraJarPath = userDir / jarPath
     val fullExtraJarFolder = extraJarPath.fullPath
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrSome("SPARK_MASTER", Some(s"spark://${InetAddress.getLocalHost.getHostAddress}:7077"))
+
+    val v = sys.env
 
     val appName = mainClass.split('.').last
 
@@ -54,7 +52,7 @@ object Launcher extends Logging {
       .setAppName(appName)
       .setMaster(sparkMaster.get)
       .setSparkHome(sparkHome.get)
-      .addAppArgs(sparkClientAkkaAddress)
+      .addAppArgs(clientAkkaAddress)
       .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
       .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))
       .setConf(SparkLauncher.DRIVER_MEMORY, config.getString("spark.driver.memory"))

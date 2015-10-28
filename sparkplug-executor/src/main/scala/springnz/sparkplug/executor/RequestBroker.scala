@@ -12,7 +12,7 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
     extends Actor with PreStart with PostStop with ActorLogging {
 
   override def preStart() = {
-    s"XXX: RequestBroker preStart: ${DateTime.now()}" >>: (home / "testfile.txt")
+    log.info(s"RequestBroker preStart called. Logging Spark Configuration below:")
     // logging Spark Configuration
     val sparkConfDebug = sparkContext.getConf
       .toDebugString
@@ -23,9 +23,9 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
 
     log.info(s"Notifying client at address '$sparkClient' of readiness.")
     if (sparkClient.nonEmpty) {
-      s"XXX: Trying to contact sparkClient $sparkClient: ${DateTime.now()}" >>: (home / "testfile.txt")
+      log.info(s"Trying to contact sparkClient at $sparkClient")
       val clientActor = context.actorSelection(sparkClient)
-      s"XXX: Sending to sparkClient $sparkClient: ${DateTime.now()}" >>: (home / "testfile.txt")
+      log.info(s"Sending ServerReady to contact sparkClient at $sparkClient")
       clientActor ! ServerReady
     }
     log.info("Finished loading RequestBroker. Ready for action.")

@@ -14,7 +14,7 @@ import scala.util.Properties
 class ExecutorServiceTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("TestSystem", ConfigFactory.load().getConfig("sparkExecutorService")))
+  def this() = this(ActorSystem("TestSystem", ConfigFactory.load().getConfig("sparkPlugExecutorService")))
 
   "notify the client that server is ready" in new Fixture(self, "client1") {
     expectMsg(1.seconds, ServerReady)

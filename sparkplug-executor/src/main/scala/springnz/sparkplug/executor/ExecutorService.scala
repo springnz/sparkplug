@@ -10,25 +10,35 @@ import org.joda.time.DateTime
 
 import scala.util.{ Properties, Try }
 
-object ExecutorService {
+object Constants {
+  val defaultConfigSectionName = "sparkPlugAkkaExecutorService"
+  val actorSystemName = "sparkPlugExecutorSystem"
+  val brokerActorName = "sparkPlugRequestBroker"
+  val sparkAppName = "SparkPlugExecutor"
+}
+
+object ExecutorService extends Logging {
+  import Constants._
+
   def main(args: Array[String]): Unit = {
     if (args.length != 1)
       throw new IllegalArgumentException("Expected 1 arguments to ExecutorService, the address of the.")
     val sparkClientPath = args(0)
 
-    s"XXX: SparkClient = $sparkClientPath: ${DateTime.now()}" >>: (home / "testfile.txt")
+    log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${DateTime.now()}")
 
     val executorService = new ExecutorService
-    val executorConfig = ConfigFactory.load().getConfig("sparkExecutorService")
-    val system = ActorSystem("ExecutorService", executorConfig)
+    val executorConfig = ConfigFactory.load().getConfig(defaultConfigSectionName)
+    val system = ActorSystem(actorSystemName, executorConfig)
 
     executorService.start(system, sparkClientPath)
   }
 }
 
 class ExecutorService extends LongLivedExecutor with Logging {
+  import Constants._
 
-  override val configurer: Configurer = new LocalConfigurer("ExecutorService", Properties.envOrNone("SPARK_MASTER"))
+  override val configurer: Configurer = new LocalConfigurer(sparkAppName, Properties.envOrNone("SPARK_MASTER"))
 
   def start(system: ActorSystem, sparkClientPath: String): Try[Unit] = {
 
@@ -39,13 +49,14 @@ class ExecutorService extends LongLivedExecutor with Logging {
         sparkContext.stop()
       }
 
-      log.info("Creating requestBroker executor.")
-      s"XXX: Creating RequestBroker: ${DateTime.now()}" >>: (home / "testfile.txt")
-      system.actorOf(Props(new RequestBroker(sparkClientPath, postStopAction)), name = "requestBroker")
+      log.info("Creating requestBroker for ExecutorService.")
+      system.actorOf(Props(new RequestBroker(sparkClientPath, postStopAction)), name = brokerActorName)
     }
 
-    log.info("Executing container operation.")
-    execute(actorOperation)
+    log.info("Executing container operation (everything happens inside this method).")
+    val result = execute(actorOperation)
+    log.info("Finished executing container operation (everything happens inside this method).")
+    result
   }
 
 }
