@@ -32,6 +32,11 @@ object Launcher extends Logging {
     future
   }
 
+  implicit class LauncherSetter(launcher: SparkLauncher) {
+    def setIfDefined(setFunc: (SparkLauncher, String) ⇒ SparkLauncher)(option: Option[String]): SparkLauncher =
+      if (option.isDefined) setFunc(launcher, option.get) else launcher
+  }
+
   def launch(clientAkkaAddress: String, jarPath: String, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
     val userDir = root / System.getProperty("user.dir")
@@ -40,7 +45,10 @@ object Launcher extends Logging {
     val fullExtraJarFolder = extraJarPath.fullPath
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
-    val sparkMaster = Properties.envOrSome("SPARK_MASTER", Some(s"spark://${InetAddress.getLocalHost.getHostAddress}:7077"))
+    val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
+
+    if (!sparkMaster.startsWith("local[") && !sparkHome.isDefined)
+      throw new RuntimeException("If 'SPARK_MASTER' is not set to local, 'SPARK_HOME' must be set.")
 
     val appName = mainClass.split('.').last
 
@@ -48,8 +56,8 @@ object Launcher extends Logging {
       .setAppResource(fullMainJar)
       .setMainClass(mainClass)
       .setAppName(appName)
-      .setMaster(sparkMaster.get)
-      .setSparkHome(sparkHome.get)
+      .setMaster(sparkMaster)
+      .setIfDefined(_.setSparkHome(_))(sparkHome)
       .addAppArgs(clientAkkaAddress)
       .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
       .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))

@@ -2,7 +2,8 @@ package springnz.sparkplug.client
 
 import akka.actor.TypedActor.PreStart
 import akka.actor._
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ Config, ConfigFactory }
+import springnz.sparkplug.client.Constants._
 import springnz.sparkplug.client.Coordinator.JobRequestWithPromise
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.util.Logging
@@ -15,20 +16,26 @@ object Coordinator {
   case class JobCompleteIndex(jobIndex: Int)
 
   def props(readyPromise: Promise[ActorRef]) = Props(new Coordinator(Some(readyPromise)))
+
+  def defaultConfig: Config = {
+    val config = ConfigFactory.load()
+    config.getConfig(defaultConfigSectionName)
+  }
 }
 
-class Coordinator(readyPromise: Option[Promise[ActorRef]] = None) extends Actor with PreStart with Logging {
+class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config = Coordinator.defaultConfig) extends Actor with PreStart with Logging {
   import Coordinator._
   import Constants._
 
   override def preStart() = {
     val launchTry: Try[Future[Unit]] = Try {
-      val config = ConfigFactory.load()
-      val hostName = config.getString(s"$defaultConfigSectionName.akka.remote.netty.tcp.hostname")
-      val port = config.getInt(s"$defaultConfigSectionName.akka.remote.netty.tcp.port")
+      // doesn't seem to be a way to get the hostname and port at runtime
+      val hostName = config.getString("akka.remote.netty.tcp.hostname")
+      val port = config.getInt("akka.remote.netty.tcp.port")
+      val systemName = context.system.name
       val clientPath = context.self.path.toString
       val localPath = clientPath.substring(clientPath.indexOf("/user/"))
-      val clientAkkaAddress = s"akka.tcp://$actorSystemName@$hostName:$port$localPath"
+      val clientAkkaAddress = s"akka.tcp://$systemName@$hostName:$port$localPath"
       Launcher.launch(clientAkkaAddress, jarPath, mainJar, mainClass).get
     }
     if (launchTry.isFailure) {
