@@ -14,14 +14,14 @@ object ESExporter {
   type ESExportResult[K, V] = (RDD[Map[K, V]], Try[Unit])
 }
 
-class ESExporter[K: ClassTag, V: ClassTag](dataQuery: SparkOperation[RDD[Map[K, V]]],
+class ESExporter[K: ClassTag, V: ClassTag](
   resourceIndex: String,
   resourceType: String,
   idField: String = "",
   includeFields: String = "",
   excludeFields: String = "",
   extraConfig: Map[String, String] = Map.empty)
-    extends SparkProcess[ESExportResult[K, V]] with Serializable {
+    extends Serializable {
 
   val config = ConfigFactory.load()
   val indexName = config.getString(s"spark.es.resourceIndex.$resourceIndex")
@@ -32,18 +32,15 @@ class ESExporter[K: ClassTag, V: ClassTag](dataQuery: SparkOperation[RDD[Map[K, 
     "es.mapping.exclude" -> excludeFields)
     .filter { case (_, v) ⇒ v.nonEmpty } ++ extraConfig
 
-  override def apply(): SparkOperation[ESExportResult[K, V]] = {
-
-    val savedData: SparkOperation[Try[Unit]] = {
-      for (rdd ← dataQuery) yield {
-        Try {
-          val rdd2 = rdd
-          rdd2.saveToEs(s"$indexName/$resourceType", configMap)
-        }
+  def export(dataSource: RDD[Map[K, V]]): SparkOperation[ESExportResult[K, V]] = {
+    val savedData: SparkOperation[Try[Unit]] = SparkOperation { _ ⇒
+      Try {
+        dataSource.saveToEs(s"$indexName/$resourceType", configMap)
       }
     }
+    val dataSourceSparkOperation = SparkOperation { _ ⇒ dataSource }
 
     // return the SparkOperation[Unit] to indicate an effect
-    (dataQuery ⊛ savedData).tupled
+    (dataSourceSparkOperation ⊛ savedData).tupled
   }
 }
