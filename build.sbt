@@ -32,5 +32,6 @@ lazy val main = project.in(file("."))
   ))
   .settings(packAutoSettings)
   .settings(packGenerateWindowsBatFile := false)
+  .settings(parallelExecution in Test := false)
 
 

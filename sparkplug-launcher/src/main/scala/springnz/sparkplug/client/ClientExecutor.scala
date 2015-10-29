@@ -4,10 +4,11 @@ import akka.actor.TypedActor.PreStart
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.util.Logging
+import springnz.util.{ Pimpers, Logging }
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.util.Try
 
 trait ClientExecutor {
   def execute[A](pluginClass: String, data: Option[Any]): Future[A]
@@ -17,12 +18,18 @@ trait ClientExecutor {
 object ClientExecutor extends Logging {
   import Constants._
   import Coordinator._
+  import Pimpers._
 
   def create(config: Config = ConfigFactory.load().getConfig(defaultConfigSectionName)) = {
 
     case class ClientActors(parent: ActorRef, coordinator: ActorRef)
 
-    val actorSystem = ActorSystem(actorSystemName, config)
+    val actorSystem: ActorSystem = {
+      Try { ActorSystem(actorSystemName, config) }
+        .withErrorLog("Unable to create ActorSystem")
+        .get
+    }
+
     implicit val executionContext = actorSystem.dispatcher
 
     // Create a parent actor to receive messages (so they don't get sent to deadLetters)
