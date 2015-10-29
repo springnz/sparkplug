@@ -14,6 +14,7 @@ import scala.util.{ Failure, Try, Success }
 object Coordinator {
   case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
   case class JobCompleteIndex(jobIndex: Int)
+  private case class LauncherError(reason: Throwable)
 
   def props(readyPromise: Promise[ActorRef]) = Props(new Coordinator(Some(readyPromise)))
 
@@ -28,12 +29,6 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
   import Constants._
 
   override def preStart() = {
-    def terminateStartup(reason: Throwable): Unit = {
-      context.parent ! ServerError(reason)
-      readyPromise.foreach(_.failure(reason))
-      self ! PoisonPill
-    }
-
     val launchTry: Try[Future[Unit]] = Try {
       // doesn't seem to be a way to get the hostname and port at runtime
       val hostName = config.getString("akka.remote.netty.tcp.hostname")
@@ -48,14 +43,14 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
     launchTry match {
       case Failure(reason) ⇒
         log.error(s"Error was caught with in Coordinator preStart (at Launcher setup phase): ${reason.toString}")
-        terminateStartup(reason)
+        self ! LauncherError(reason)
 
       case Success(future) ⇒
         implicit val executionContext = context.system.dispatcher
         future.onFailure {
           case reason ⇒
             log.error(s"Error was caught with in Coordinator preStart (at Launcher execution phase): ${reason.toString}")
-            terminateStartup(reason)
+            self ! LauncherError(reason)
         }
     }
   }
@@ -63,6 +58,12 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
   override def receive: Receive = waitForReady(List.empty)
 
   def waitForReady(queuedList: List[(ActorRef, JobRequest)]): Receive = {
+    case LauncherError(reason) ⇒
+      log.error(s"Shutting down coordinator after launcher error: ${reason.toString}")
+      context.parent ! ServerError(reason)
+      readyPromise.foreach(_.failure(reason))
+      self ! PoisonPill
+
     case ServerReady ⇒
       val broker = sender
       context.become(waitForRequests(broker, 0, Set.empty[Int]))
