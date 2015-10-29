@@ -8,11 +8,11 @@ import springnz.util.Logging
 import scala.concurrent._
 
 object SingleJobProcessor {
-  def props(broker: ActorRef, requestor: ActorRef, jobRequest: JobRequest, promise: Option[Promise[Any]], jobIndex: Int) =
-    Props(new SingleJobProcessor(broker, requestor, jobRequest, promise, jobIndex))
+  def props(jobRequest: JobRequest, broker: ActorRef, requestor: Option[ActorRef], promise: Option[Promise[Any]], jobIndex: Int) =
+    Props(new SingleJobProcessor(jobRequest, broker, requestor, promise, jobIndex))
 }
 
-class SingleJobProcessor(broker: ActorRef, requestor: ActorRef, jobRequest: JobRequest, promise: Option[Promise[Any]], jobIndex: Int)
+class SingleJobProcessor(jobRequest: JobRequest, broker: ActorRef, requestor: Option[ActorRef], promise: Option[Promise[Any]], jobIndex: Int)
     extends Actor with PreStart with Logging {
 
   import Coordinator._
@@ -27,17 +27,19 @@ class SingleJobProcessor(broker: ActorRef, requestor: ActorRef, jobRequest: JobR
       log.info(s"Received Result from sender: $sender")
       log.info(s"Result value: $result")
       // tell the requestor the job succeeded, but make it look like it came from the coordinator
-      requestor.tell(jobSuccess, context.parent)
+      val coordinator = context.parent
+      requestor.foreach(_.tell(jobSuccess, coordinator))
       promise.foreach(_.success(result))
-      context.parent ! JobCompleteIndex(jobIndex)
+      coordinator ! JobCompleteIndex(jobIndex)
       self ! PoisonPill
 
     case jobFailure @ JobFailure(jobRequest, reason) ⇒
       log.info(s"Received JobFailure from sender: $sender")
       log.info(s"Reason: ${reason.getMessage}")
-      requestor.tell(jobFailure, context.parent)
+      val coordinator = context.parent
+      requestor.foreach(_.tell(jobFailure, coordinator))
       promise.foreach(_.failure(reason))
-      context.parent ! JobCompleteIndex(jobIndex)
+      coordinator ! JobCompleteIndex(jobIndex)
       self ! PoisonPill
   }
 

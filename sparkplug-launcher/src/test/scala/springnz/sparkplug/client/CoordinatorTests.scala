@@ -1,15 +1,18 @@
 package springnz.sparkplug.client
 
 import akka.actor.{ ActorRef, ActorSystem }
+import akka.pattern.ask
 import akka.testkit.{ ImplicitSender, TestActorRef, TestKit }
+import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess, ShutDown }
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class CoordinatorTests(_system: ActorSystem)
-    extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
+    extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
 
   def this() = this(ActorSystem(Constants.actorSystemName, ConfigFactory.load().getConfig(Constants.defaultConfigSectionName)))
 
@@ -30,6 +33,14 @@ class CoordinatorTests(_system: ActorSystem)
       val goodRequest = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
       coordinator ! goodRequest
       expectMsg[JobSuccess](20.seconds, JobSuccess(goodRequest, (2, 2)))
+    }
+
+    "work with the ask pattern as well" in {
+      implicit val timeout = Timeout(20 seconds)
+      val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val replyFuture = coordinator ? request
+      val result = Await.result(replyFuture, 20.seconds)
+      result shouldBe JobSuccess(request, (2, 2))
     }
 
   }

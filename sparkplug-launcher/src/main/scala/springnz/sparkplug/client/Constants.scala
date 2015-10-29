@@ -3,7 +3,6 @@ package springnz.sparkplug.client
 object Constants {
   val defaultConfigSectionName = "sparkPlugAkkaClient"
   val actorSystemName = "sparkPlugClientSystem"
-  val executorActorName = "Executor"
   val coordinatorActorName = "Coordinator"
   val jarPath = "target/pack/lib"
   val mainJar = s"sparkplug-executor_2.11-0.2.6-SNAPSHOT.jar"

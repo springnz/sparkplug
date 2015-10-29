@@ -60,16 +60,23 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
   def waitForReady(queuedList: List[(ActorRef, JobRequest)]): Receive = {
     case LauncherError(reason) ⇒
       log.error(s"Shutting down coordinator after launcher error: ${reason.toString}")
-      context.parent ! ServerError(reason)
-      readyPromise.foreach(_.failure(reason))
+      if (readyPromise.isDefined)
+        readyPromise.get.failure(reason)
+      else
+        context.parent ! ServerError(reason)
       self ! PoisonPill
 
     case ServerReady ⇒
       val broker = sender
       context.become(waitForRequests(broker, 0, Set.empty[Int]))
       log.info(s"Coordinator received a ServerReady message from broker: ${broker.path.toString}")
-      context.parent ! ServerReady
-      readyPromise.foreach(_.complete(Success(self)))
+
+      // Compete the Promise or send ServerReady
+      if (readyPromise.isDefined)
+        readyPromise.get.complete(Success(self))
+      else
+        context.parent ! ServerReady
+
       queuedList.foreach {
         case (originalSender, request) ⇒
           log.info(s"Forwarding queued request $request from $sender")
@@ -94,7 +101,12 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
 
     case JobRequestWithPromise(request, promise) ⇒
       log.info(s"ClientExecutor received from sender: ${sender.path.toString}")
-      context.actorOf(SingleJobProcessor.props(broker, sender, request, promise, jobCounter), s"SingleJobProcessor-$jobCounter")
+      // Either complete the promise or reply to the sender (not both)
+      val requestor = promise match {
+        case None ⇒ Some(sender)
+        case _    ⇒ None
+      }
+      context.actorOf(SingleJobProcessor.props(request, broker, requestor, promise, jobCounter), s"SingleJobProcessor-$jobCounter")
       context become waitForRequests(broker, jobCounter + 1, jobsOutstanding + jobCounter)
 
     case ShutDown ⇒ shutDown(broker)
