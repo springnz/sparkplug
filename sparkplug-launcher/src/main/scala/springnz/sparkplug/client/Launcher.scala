@@ -12,24 +12,26 @@ import scala.concurrent.Future
 import scala.util.{ Properties, Try }
 
 object Launcher extends Logging {
+  import Pimpers._
 
   val config = ConfigFactory.load()
 
-  def executeProcess(launcher: SparkLauncher): Future[Unit] = {
-    import Pimpers._
-
-    val future: Future[Unit] = Future {
-      Try {
-        val process = launcher.launch()
-        val errorStream = scala.io.Source.fromInputStream(process.getErrorStream)
-        val errorLines = errorStream.getLines()
-        for (line ← errorLines) {
-          log.info(line)
-        }
-        process.waitFor()
-      }.withErrorLog("Failed to Launch")
+  def startProcess(launcher: SparkLauncher): Future[Unit] = {
+    val processFuture = Future {
+      launcher.launch()
+    }.withErrorLog("Failed to launch: ")
+    processFuture.flatMap {
+      process ⇒ executeProcess(process)
     }
-    future
+  }
+
+  private def executeProcess(process: Process): Future[Unit] = Future {
+    val errorStream = scala.io.Source.fromInputStream(process.getErrorStream)
+    val errorLines = errorStream.getLines()
+    for (line ← errorLines) {
+      log.info(line)
+    }
+    process.waitFor()
   }
 
   implicit class LauncherSetter(launcher: SparkLauncher) {
@@ -73,7 +75,7 @@ object Launcher extends Logging {
         .setConf(SparkLauncher.DRIVER_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
         .setConf(SparkLauncher.EXECUTOR_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
 
-    executeProcess(launcherWithJars)
+    startProcess(launcherWithJars)
   }
 
 }

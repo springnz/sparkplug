@@ -9,7 +9,7 @@ import springnz.sparkplug.executor.MessageTypes._
 import springnz.util.Logging
 
 import scala.concurrent._
-import scala.util.{ Try, Success }
+import scala.util.{ Failure, Try, Success }
 
 object Coordinator {
   case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
@@ -28,6 +28,12 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
   import Constants._
 
   override def preStart() = {
+    def terminateStartup(reason: Throwable): Unit = {
+      context.parent ! ServerError(reason)
+      readyPromise.foreach(_.failure(reason))
+      self ! PoisonPill
+    }
+
     val launchTry: Try[Future[Unit]] = Try {
       // doesn't seem to be a way to get the hostname and port at runtime
       val hostName = config.getString("akka.remote.netty.tcp.hostname")
@@ -38,12 +44,19 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       val clientAkkaAddress = s"akka.tcp://$systemName@$hostName:$port$localPath"
       Launcher.launch(clientAkkaAddress, jarPath, mainJar, mainClass).get
     }
-    if (launchTry.isFailure) {
-      val reason = launchTry.failed.get
-      log.error(s"Error was caught with in Coordinator preStart: ${reason.toString}")
-      context.parent ! ServerError(reason)
-      readyPromise.foreach(_.failure(reason))
-      self ! PoisonPill
+
+    launchTry match {
+      case Failure(reason) ⇒
+        log.error(s"Error was caught with in Coordinator preStart (at Launcher setup phase): ${reason.toString}")
+        terminateStartup(reason)
+
+      case Success(future) ⇒
+        implicit val executionContext = context.system.dispatcher
+        future.onFailure {
+          case reason ⇒
+            log.error(s"Error was caught with in Coordinator preStart (at Launcher execution phase): ${reason.toString}")
+            terminateStartup(reason)
+        }
     }
   }
 
