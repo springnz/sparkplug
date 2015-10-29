@@ -26,16 +26,17 @@ class SingleJobProcessor(broker: ActorRef, requestor: ActorRef, jobRequest: JobR
     case jobSuccess @ JobSuccess(jobRequest, result) ⇒
       log.info(s"Received Result from sender: $sender")
       log.info(s"Result value: $result")
-      requestor ! jobSuccess
-      if (promise.isDefined) promise.get.success(result)
+      // tell the requestor the job succeeded, but make it look like it came from the coordinator
+      requestor.tell(jobSuccess, context.parent)
+      promise.foreach(_.success(result))
       context.parent ! JobCompleteIndex(jobIndex)
       self ! PoisonPill
 
     case jobFailure @ JobFailure(jobRequest, reason) ⇒
       log.info(s"Received JobFailure from sender: $sender")
       log.info(s"Reason: ${reason.getMessage}")
-      requestor ! jobFailure
-      if (promise.isDefined) promise.get.failure(reason)
+      requestor.tell(jobFailure, context.parent)
+      promise.foreach(_.failure(reason))
       context.parent ! JobCompleteIndex(jobIndex)
       self ! PoisonPill
   }

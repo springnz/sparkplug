@@ -1,33 +1,16 @@
 package springnz.sparkplug.client
 
-import akka.actor.ActorSystem
-import akka.testkit.{ TestKit, ImplicitSender }
-import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import springnz.util.Logging
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-class LauncherTests extends WordSpec with ShouldMatchers with Logging {
-
-  "simple spark launch" should {
-    "launch spark letter count process (without Akka)" in {
-      val launcher = Launcher.launch("", "target/pack/lib", "target/pack/lib/spark-lib_2.11-0.2.6-SNAPSHOT.jar", "springnz.sparkplug.examples.LetterCount")
-      val result = Await.result(launcher.get, 10 seconds)
-
-      // this way of executing does not return anything
-      result shouldBe (())
-    }
-  }
-}
-
 trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
 
   var executor: ClientExecutor = null
 
   override def beforeEach() {
-    Thread.sleep(1000)
     try executor = ClientExecutor.create()
     finally super.beforeEach()
   }
@@ -84,18 +67,6 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
       forAll(results) {
         result ⇒ result shouldBe ((2, 2))
       }
-    }
-  }
-}
-
-class CoordinatorTests(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
-
-  def this() = this(ActorSystem("TestSystem", ConfigFactory.load().getConfig("sparkPlugAkkaExecutorService")))
-
-  implicit val ec = scala.concurrent.ExecutionContext.global
-
-  "coordinator" should {
-    "Calculate a single job" in {
     }
   }
 }

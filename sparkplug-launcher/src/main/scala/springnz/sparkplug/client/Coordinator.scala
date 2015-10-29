@@ -14,10 +14,10 @@ object Coordinator {
   case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
   case class JobCompleteIndex(jobIndex: Int)
 
-  def props(readyPromise: Promise[ActorRef]) = Props(new Coordinator(readyPromise))
+  def props(readyPromise: Promise[ActorRef]) = Props(new Coordinator(Some(readyPromise)))
 }
 
-class Coordinator(readyPromise: Promise[ActorRef]) extends Actor with PreStart with Logging {
+class Coordinator(readyPromise: Option[Promise[ActorRef]] = None) extends Actor with PreStart with Logging {
   import Coordinator._
   import Constants._
 
@@ -35,18 +35,35 @@ class Coordinator(readyPromise: Promise[ActorRef]) extends Actor with PreStart w
       val reason = launchTry.failed.get
       log.error(s"Error was caught with in Coordinator preStart: ${reason.toString}")
       context.parent ! ServerError(reason)
-      readyPromise.failure(reason)
+      readyPromise.foreach(_.failure(reason))
       self ! PoisonPill
     }
   }
 
-  override def receive: Receive = {
+  override def receive: Receive = waitForReady(List.empty)
+
+  def waitForReady(queuedList: List[(ActorRef, JobRequest)]): Receive = {
     case ServerReady ⇒
       val broker = sender
       context.become(waitForRequests(broker, 0, Set.empty[Int]))
       log.info(s"Coordinator received a ServerReady message from broker: ${broker.path.toString}")
       context.parent ! ServerReady
-      readyPromise.complete(Success(self))
+      readyPromise.foreach(_.complete(Success(self)))
+      queuedList.foreach {
+        case (originalSender, request) ⇒
+          log.info(s"Forwarding queued request $request from $sender")
+          self.tell(request, originalSender)
+      }
+
+    case ServerError(reason) ⇒ {
+      log.error(s"Received an error from the Server: $reason")
+      // TODO: handle this
+    }
+
+    case request: JobRequest ⇒ {
+      log.info(s"Queueing request $request from $sender")
+      context.become(waitForReady((sender, request) :: queuedList))
+    }
   }
 
   def waitForRequests(broker: ActorRef, jobCounter: Int, jobsOutstanding: Set[Int]): Receive = {
@@ -69,9 +86,14 @@ class Coordinator(readyPromise: Promise[ActorRef]) extends Actor with PreStart w
 
   }
 
+  def notReceivingRequests(): Receive = {
+    case _ ⇒
+  }
+
   def shutDown(broker: ActorRef): Unit = {
     log.info(s"Coordinator shutting down...")
     broker ! ShutDown
+    context.become(notReceivingRequests)
     self ! PoisonPill
   }
 }
