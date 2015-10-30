@@ -72,9 +72,42 @@ Note that this pattern involves decoupling the pipeline definition from the pipe
 
 It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
-## Wiring together `SparkOperation` components
+## Wiring together SparkOperation components
 
-TBD
+This is easiest to explain by example. A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. 
+Then there are operations that process this input data. The first step in this example processes the input data into a `RDD` of `Document`s. The next step is to transform `ParserInfo`s into `Document`.
+This can be represented by the following pipeline trait.
+
+```scala
+trait Pipeline {
+  def dataSource: SparkOperation[RDD[InputType]]
+
+  lazy val firstOperation: SparkOperation[RDD[Document]] = dataSource.map {
+    input ⇒ createDocument(input)
+  }
+  
+  lazy val secondOperation: SparkOperation[RDD[ParserInfo]] = firstOperation.map {
+    doc ⇒ parseDocument(doc)
+  }
+}
+```
+
+We wish to use a different data source for test and production environments. This can be done by applying the following overrides:
+
+For the test environment:
+```scala
+trait TestPipeline extends Pipeline {
+  override lazy val dataSource = new TestRDDSource[InputType](fileName)
+}
+```
+And for production:
+```scala
+trait ProdPipeline extends Pipeline {
+  override lazy val dataSource = new CassandraRDDSource[InputType](keySpace, table)
+}
+```
+
+The `springnz.sparkplug.testkit` namespace contains methods to sample and persist `RDD`s at various stages in the pipeline. This enables isolated testing. It also relieves one from the burden of hand crafting test cases. 
 
 ## Execution on a cluster
 
@@ -118,7 +151,27 @@ SparkPlug is set up as a sbt multi-project with the following subprojects:
 
 There is a build dependency on [Spring NZ util-lib](https://github.com/springnz/util-lib). The easist is to clone the repository and run `sbt publish` (or `sbt publishLocal`) to publish to your (local) repository.
 
-Then clone the repository and proceed as normal.
+Then clone the repository and compile / test in sbt.
+
+### Clustering
+
+The cluster execution component has a few more moving parts:
+
+As a bare minimum, Spark needs to be installed on the local machine. 
+
+The standard Spark packages are all based on Scala 2.10. 
+Sparkplug requires a Scala version 2.11 edition of Spark, which needs to be built from source.
+
+See the [spark build documentation](https://spark.apache.org/docs/latest/building-spark.html) on how to do this.
+
+In particular, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
+
+*You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[*]"` to run Spark in local mode.* 
+
+All jars in your client application need to be in one folder. This can be done using [SBT Pack](https://github.com/xerial/sbt-pack).
+Add the following line to your `plugins.sbt` file: `addSbtPlugin("org.xerial.sbt" % "sbt-pack" % "0.7.5")` (see the SBT Pack docs for the latest info).
+
+Then run `sbt pack` before running the tests.
 
 ### Environment variables
 
@@ -127,6 +180,7 @@ Environment variables may be required, particular for data connections:
 #### Spark environment variables (for cluster execution)
 
 * *SPARK_HOME*: Spark home folder
+* *SPARK_MASTER*: Spark master location / URL
 * *SPARK_EVENTLOG_ENABLED*: Used to turn on event logging for the Spark WebUI.
 * *SPARK_EVENTLOG_DIR*: Location to log to for the Spark WebUI events.
 
@@ -142,3 +196,17 @@ Environment variables may be required, particular for data connections:
 * *SPARK_CASSANDRA_AUTH_USERNAME*: Username for authenticated cassandra connections
 * *SPARK_CASSANDRA_AUTH_PASSWORD*: Password for authenticated cassandra connections
 
+## TODO
+
+There is plenty of work to do to get SparkPlug into fully fledged production mode.
+
+This includes, but is not limited to:
+
+* Support for more data sources.
+* Better error handling and monitoring of cluster execution.
+* Testing on Mesos and YARN clusters.
+* (Possibly) extensions to support Spark Streaming.
+* Creating an activator template for a Sparkplug client application.
+* Plus many more...
+
+Contributions are welcome.
