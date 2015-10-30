@@ -100,11 +100,15 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       self forward JobRequestWithPromise(request, None)
 
     case JobRequestWithPromise(request, promise) ⇒
-      log.info(s"ClientExecutor received from sender: ${sender.path.toString}")
       // Either complete the promise or reply to the sender (not both)
       val requestor = promise match {
-        case None ⇒ Some(sender)
-        case _    ⇒ None
+        case None ⇒
+          log.info(s"Coordinator received job request from sender: ${sender.path.toString}")
+          Some(sender)
+
+        case _ ⇒
+          log.info(s"Coordinator received job request from ClientExecutor (via Future interface)")
+          None
       }
       context.actorOf(SingleJobProcessor.props(request, broker, requestor, promise, jobCounter), s"SingleJobProcessor-$jobCounter")
       context become waitForRequests(broker, jobCounter + 1, jobsOutstanding + jobCounter)
