@@ -20,7 +20,7 @@ fileData/
 logs/
 .DS_Store
 *.log
-
+.DS_Store
 
 # Intellij
 .idea/

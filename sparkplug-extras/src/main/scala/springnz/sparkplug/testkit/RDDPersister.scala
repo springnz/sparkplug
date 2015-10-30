@@ -25,7 +25,7 @@ object RDDPersister extends Logging {
     (tablePath.fullPath, fileExists)
   }
 
-  def persistRDD[A: ClassTag: RowReaderFactory: ValidRDDType](
+  def persistRDD[A](
     tablePath: String, rdd: RDD[A], rddDestPartitions: Int = 10): RDD[A] = {
     log.debug(s"Saving RDD to $tablePath ...")
     // reduce the number of partitions
@@ -37,8 +37,8 @@ object RDDPersister extends Logging {
   def getPath(projectName: String, rddName: String): File =
     "." / projectName / "src" / "test" / "resources" / "testdata" / rddName
 
-  def checkIfPersistedRDDExists[A: ClassTag: RowReaderFactory: ValidRDDType](projectDirectory: String, rddName: String) =
-    getPath(projectDirectory, rddName).exists
+  def checkIfPersistedRDDExists(projectName: String, rddName: String) =
+    getPath(projectName, rddName).exists
 
 }
 
