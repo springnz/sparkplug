@@ -25,6 +25,7 @@ object Dependencies {
   val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
   val akkaActors = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaRemote = "com.typesafe.akka" %% "akka-remote" % akkaVersion
+  val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 
   // Other libraries
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.1.3"
@@ -50,7 +51,7 @@ object Dependencies {
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
   val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver)
 
-  val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote)
+  val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
   val sharedCompileDependencies = Seq(slf4jApi, playJson, betterFiles, utilLib)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
@@ -70,7 +71,10 @@ object Dependencies {
     logBackDependencies ++
     sharedDependencies
 
-  val sparkLauncherLibDependencies = Seq(sparkLauncher) ++ akkaDependencies ++ sharedDependencies
+  val sparkLauncherLibDependencies = Seq(sparkLauncher, scalaLogging) ++
+    akkaDependencies ++
+    logBackDependencies ++
+    sharedDependencies
 
   // Dependency overrides
   // This override is needed because Spark uses a later version of Jackson that breaks play-json

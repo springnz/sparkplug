@@ -30,9 +30,7 @@ class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Loggi
       val result = operation.run(sparkContext)
       log.info(s"Job '$factoryName' finished.")
 
-      val listener = new SparkListener {
-
-      }
+      val listener = new SparkListener {}
       sparkContext.addSparkListener(listener)
 
       result
