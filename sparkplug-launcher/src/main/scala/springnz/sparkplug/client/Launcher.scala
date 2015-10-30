@@ -14,7 +14,7 @@ import scala.util.{ Properties, Try }
 object Launcher extends Logging {
   import Pimpers._
 
-  val config = ConfigFactory.load()
+  val config = ConfigFactory.load().getConfig("sparkPlugClient.spark.conf")
 
   def startProcess(launcher: SparkLauncher): Future[Unit] = {
     val processFuture = Future {
@@ -49,6 +49,9 @@ object Launcher extends Logging {
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
 
+    // TODO: enable this functionality (need Spark 1.5 for this)
+    //    val sparkArgs: Array[String] = config.getString("spark.submit.sparkargs").split(' ')
+
     if (!sparkMaster.startsWith("local[") && !sparkHome.isDefined)
       throw new RuntimeException("If 'SPARK_MASTER' is not set to local, 'SPARK_HOME' must be set.")
 
@@ -64,6 +67,8 @@ object Launcher extends Logging {
       .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
       .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))
       .setConf(SparkLauncher.DRIVER_MEMORY, config.getString("spark.driver.memory"))
+      .setDeployMode(config.getString("spark.deploymode"))
+    //      .addSparkArgs(sparkArgs) TODO: enable this functionality (need Spark 1.5 for this)
 
     val extraJarFiles = extraJarPath.glob("**/*.jar").collect { case f ⇒ f.fullPath }.filterNot(_.contains("/akka-"))
 
