@@ -63,7 +63,7 @@ object Launcher extends Logging {
       .setAppName(appName)
       .setMaster(sparkMaster)
       .setIfDefined(_.setSparkHome(_))(sparkHome)
-      .addAppArgs(clientAkkaAddress)
+      .addAppArgs("SparkPlugExecutor", clientAkkaAddress)
       .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
       .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))
       .setConf(SparkLauncher.DRIVER_MEMORY, config.getString("spark.driver.memory"))

@@ -19,7 +19,14 @@ class ExecutorServiceTests(_system: ActorSystem)
     expectMsg(1.seconds, ServerReady)
   }
 
-  "successfuly execute a job request" in new Fixture(self, "client2") {
+  "successfuly execute a job request via an operation" in new Fixture(self, "client2") {
+    val requestBroker = system.actorSelection(s"/user/${Constants.brokerActorName}")
+    val request = JobRequest("springnz.sparkplug.examples.LetterCount", None)
+    requestBroker ! request
+    expectMsg[JobSuccess](6.seconds, JobSuccess(request, (2, 2)))
+  }
+
+  "successfuly execute a job request via a plugin" in new Fixture(self, "client2") {
     val requestBroker = system.actorSelection(s"/user/${Constants.brokerActorName}")
     val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
     requestBroker ! request
@@ -28,9 +35,9 @@ class ExecutorServiceTests(_system: ActorSystem)
 
   class Fixture(probe: ActorRef, clientName: String) {
 
-    val executorService = new ExecutorService {
+    val executorService = new ExecutorService("TestService") {
       // Run it locally in Spark
-      override val configurer: Configurer = new LocalConfigurer("ExecutorService", None)
+      override val configurer: Configurer = new LocalConfigurer("TestService", None)
     }
 
     executorService.start(system, s"/user/$clientName")
