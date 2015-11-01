@@ -8,27 +8,36 @@ import springnz.sparkplug.executor.MessageTypes.{ ShutDown, ServerReady, JobRequ
 import org.apache.spark.SparkContext
 import org.joda.time.DateTime
 
+import scala.util.Try
+
 class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit sparkContext: SparkContext)
     extends Actor with PreStart with PostStop with ActorLogging {
 
   override def preStart() = {
-    log.info(s"RequestBroker preStart called. Logging Spark Configuration below:")
-    // logging Spark Configuration
-    val sparkConfDebug = sparkContext.getConf
-      .toDebugString
-      .lines
-      .filterNot(_.contains("password"))
-      .mkString("\n")
-    log.info(s"Spark-Configuration:\n$sparkConfDebug\n")
+    Try {
+      log.info(s"RequestBroker preStart called. Logging Spark Configuration below:")
+      // logging Spark Configuration
+      val sparkConfDebug = sparkContext.getConf
+        .toDebugString
+        .lines
+        .filterNot(_.contains("password"))
+        .mkString("\n")
+      log.info(s"Spark-Configuration:\n$sparkConfDebug\n")
 
-    log.info(s"Notifying client at address '$sparkClient' of readiness.")
-    if (sparkClient.nonEmpty) {
-      log.info(s"Trying to contact sparkClient at $sparkClient")
-      val clientActor = context.actorSelection(sparkClient)
-      log.info(s"Sending ServerReady to contact sparkClient at $sparkClient")
-      clientActor ! ServerReady
+      log.info(s"Notifying client at address '$sparkClient' of readiness.")
+      if (sparkClient.nonEmpty) {
+        log.info(s"Trying to contact sparkClient at $sparkClient")
+        val clientActor = context.actorSelection(sparkClient)
+        log.info(s"Sending ServerReady to contact sparkClient at $sparkClient")
+        clientActor ! ServerReady
+      }
+      log.info("Finished loading RequestBroker. Ready for action.")
+    }.recover {
+      case reason ⇒
+        log.error(s"Error initialising Request Broker. Reason: $reason")
+        log.error(s"Sending the ShutDown message.")
+        self ! ShutDown
     }
-    log.info("Finished loading RequestBroker. Ready for action.")
   }
 
   override def postStop() = {
