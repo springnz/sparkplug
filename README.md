@@ -135,7 +135,9 @@ Sparkplug launcher uses Akka remoting under the hood. Sparkplug launches jobs on
 5. When a request arrives at the client, it sends a message to the server to process the request.
 6. The job is then run by the server and the client is notified when it is done. The final result is streamed back to the client.
 
-The details of how to plug an operation pipeline into the cluster execution... TBD
+The details of how to plug an operation pipeline into the cluster execution... TBD(ocumented)
+
+*A moderate refactoring of the client interface is planned to support running multiple server applications (each with their own SparkContext)*
 
 ## Projects
 
