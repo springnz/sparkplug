@@ -3,11 +3,16 @@ import sbt._
 object Dependencies {
 
   // Version Numbers
-  val sparkVersion = "1.4.1"
+  val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
+
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-M2",
     "1.4.1" -> "1.4.0")
+
+  val elasticSearchSparkVersionMap = Map(
+    "1.5.1" -> "2.2.0-beta1",
+    "1.4.1" -> "2.2.0-m1")
 
   // Spark
   val sparkCore = "org.apache.spark" %% "spark-core" % sparkVersion % Provided
@@ -16,7 +21,7 @@ object Dependencies {
 
   // Spark Data
   val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % cassandraConnectorVersionMap(sparkVersion)
-  val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % "2.2.0-m1"
+  val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % elasticSearchSparkVersionMap(sparkVersion)
 
   // Other Data Drivers
   val mySqlDriver = "mysql" % "mysql-connector-java" % "5.1.36"

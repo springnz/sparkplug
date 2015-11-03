@@ -26,8 +26,10 @@ object ClientExecutor extends Logging {
     val executor = create(config)
     executor
       .execute(pluginClass, data)
-      .andThen { case _ ⇒
-        executor.shutDown() }
+      .andThen {
+        case _ ⇒
+          executor.shutDown()
+      }
   }
 
   def create(config: Config = defaultConfig()): ClientExecutor = {

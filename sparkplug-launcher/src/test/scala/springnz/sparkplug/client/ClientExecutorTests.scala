@@ -71,16 +71,14 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
   }
 }
 
-
 class ClientExecutorSingleTests extends WordSpec with ShouldMatchers with Logging {
   "client executor" should {
     "Calculate a single job" in {
       implicit val ec = scala.concurrent.ExecutionContext.global
-      val future = ClientExecutor[(Long,Long)]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val future = ClientExecutor[(Long, Long)]("springnz.sparkplug.examples.LetterCountPlugin", None)
       val result = Await.result(future, 20 seconds)
       result shouldBe ((2, 2))
     }
-
 
   }
 }

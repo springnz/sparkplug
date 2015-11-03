@@ -27,6 +27,6 @@ object MapPimpers {
   }
 }
 
-class LetterCountPlugin  {
+class LetterCountPlugin {
   def apply(input: Any) = ???
 }
