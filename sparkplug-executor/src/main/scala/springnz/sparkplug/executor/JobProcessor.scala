@@ -42,9 +42,9 @@ class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Loggi
         log.debug(s"Job result: $result")
         originator ! JobSuccess(job, result)
 
-      case Failure(e) ⇒
-        log.error(s"Job processing of job $job failed. Notifying client. Reason: ${e.getMessage}")
-        originator ! JobFailure(job, e)
+      case Failure(reason) ⇒
+        log.error(s"Job processing of job $job failed. Notifying client", reason)
+        originator ! JobFailure(job, reason)
     }
   }
 
