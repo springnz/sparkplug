@@ -237,7 +237,14 @@ Sparkplug requires a Scala version 2.11 edition of Spark, which needs to be buil
 
 See the [spark build documentation](https://spark.apache.org/docs/latest/building-spark.html) on how to do this.
 
-In particular, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
+**OR:**
+
+Use the forked version of Spark: [https://github.com/springnz/spark](https://github.com/springnz/spark)
+
+* Pull the branch corresponding to the [current Spark version.](https://raw.githubusercontent.com/springnz/sparkplug/master/project/Dependencies.scala)
+* Execute the `make-sparkplug-distribution.sh` script to create a distribution.
+
+When installing Spark, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
 
 *You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[2]"` to run Spark in local mode (with 2 cores in this case).* 
 
