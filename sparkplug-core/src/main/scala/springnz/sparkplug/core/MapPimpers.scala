@@ -16,17 +16,9 @@ object MapPimpers {
           case _            ⇒ throw new Exception // should never happen - just there to suppress warning
         }
 
-    def getFirst(seqA: A*): Option[B] = seqA.length match {
-      case 0 ⇒ None
-      case _ ⇒ map.get(seqA.head) match {
-        case None  ⇒ getFirst(seqA.tail: _*)
-        case value ⇒ value
+    def getFirst(seqA: A*): Option[B] =
+      seqA.headOption flatMap { head ⇒
+        map.get(head) orElse getFirst(seqA.tail: _*)
       }
-
-    }
   }
-}
-
-class LetterCountPlugin {
-  def apply(input: Any) = ???
 }

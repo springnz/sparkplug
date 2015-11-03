@@ -42,14 +42,14 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
 
     launchTry match {
       case Failure(reason) ⇒
-        log.error(s"Error was caught with in Coordinator preStart (at Launcher setup phase): ${reason.toString}")
+        log.error(s"Error was caught with in Coordinator preStart (at Launcher setup phase)", reason)
         self ! LauncherError(reason)
 
       case Success(future) ⇒
         implicit val executionContext = context.system.dispatcher
         future.onFailure {
           case reason ⇒
-            log.error(s"Error was caught with in Coordinator preStart (at Launcher execution phase): ${reason.toString}")
+            log.error(s"Error was caught with in Coordinator preStart (at Launcher execution phase)", reason)
             self ! LauncherError(reason)
         }
     }
@@ -59,7 +59,7 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
 
   def waitForReady(queuedList: List[(ActorRef, JobRequest)]): Receive = {
     case LauncherError(reason) ⇒
-      log.error(s"Shutting down coordinator after launcher error: ${reason.toString}")
+      log.error(s"Shutting down coordinator after launcher error.", reason)
       if (readyPromise.isDefined)
         readyPromise.get.failure(reason)
       else
@@ -84,7 +84,7 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       }
 
     case ServerError(reason) ⇒ {
-      log.error(s"Received an error from the Server: $reason")
+      log.error(s"Received an error from the Server.", reason)
       // TODO: handle this
     }
 

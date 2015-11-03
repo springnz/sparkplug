@@ -34,7 +34,7 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
       log.info("Finished loading RequestBroker. Ready for action.")
     }.recover {
       case reason ⇒
-        log.error(s"Error initialising Request Broker. Reason: $reason")
+        log.error(s"Error initialising Request Broker.", reason)
         log.error(s"Sending the ShutDown message.")
         self ! ShutDown
     }
