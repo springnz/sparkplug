@@ -2,7 +2,7 @@
 
 **A framework for creating composable and pluggable data processing pipelines using [Apache Spark](http://spark.apache.org "Apache Spark"), and running them on a cluster.**
 
-*Please note that this project is early stage work in progress, and will be subject to some breaking changes and aggressive refactoring. It will however be getting a lot of love in the next couple of months.*
+*Please note that this project is early stage work in progress, and will be subject to some breaking changes and refactoring.*
 
 Apache Spark is great, but not everything you need to use it successfully in production environments comes out the box.
 
@@ -54,9 +54,11 @@ These include:
 
 Then once we have composed the `SparkOperation` as desired, it is against a given `SparkContext`.
 
+```scala
 val answer = letterCount.run(sparkContext)
+```
 
-The types of `SparkOperation`s are typically, at least until the end of the pipeline, `RDD`s.
+The types of `SparkOperation`s are typically, at least until the final step of the pipeline, `RDD`s.
 
 ### Why go to all this trouble?
 
@@ -72,37 +74,55 @@ Note that this pattern involves decoupling the pipeline definition from the pipe
 
 It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
-## Wiring together SparkOperation components
+### Wiring together SparkOperation components
 
-This is easiest to explain by example. A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. 
-Then there are operations that process this input data. The first step in this example processes the input data into a `RDD` of `Document`s. The next step is to transform `ParserInfo`s into `Document`.
+A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. Then there are operations that process this input data. 
+
+As a simple example, consider a pipeline processing a corpus of documents:
+
+1. The first step processes input data into a `RDD` of `Document`s. 
+2. The next step is to transform `Document`s into `ParserInfo`s. 
+3. The final step is to calculate document statistics, and return a `DocumentStats` object with summary statistics.
+
 This can be represented by the following pipeline trait.
 
 ```scala
-trait Pipeline {
+trait DocumentPipeline {
   def dataSource: SparkOperation[RDD[InputType]]
 
-  lazy val firstOperation: SparkOperation[RDD[Document]] = dataSource.map {
+  lazy val createOperation: SparkOperation[RDD[Document]] = dataSource.map {
     input ⇒ createDocument(input)
   }
   
-  lazy val secondOperation: SparkOperation[RDD[ParserInfo]] = firstOperation.map {
+  lazy val parseOperation: SparkOperation[RDD[ParserInfo]] = createOperation.map {
     doc ⇒ parseDocument(doc)
+  }
+  
+  lazy val statsOperation: SparkOperation[DocumentStats] = parseOperation.map {
+    parsedDoc ⇒ calculateStats(parsedDoc)
   }
 }
 ```
+
+Note that `SparkOperation`s need not return `RDD`s, and in general, the final step in the pipeline will generally return something other than a `RDD`. 
+
+This will generally be the final status after writing data to a database (`Try[Unit]` is good for this), or some summary/aggregate result.
+
+The final result of the pipeline should be a serializable type.
+
+### Testing
 
 We wish to use a different data source for test and production environments. This can be done by applying the following overrides:
 
 For the test environment:
 ```scala
-trait TestPipeline extends Pipeline {
+trait TestDocPipeline extends DocumentPipeline {
   override lazy val dataSource = new TestRDDSource[InputType](fileName)
 }
 ```
 And for production:
 ```scala
-trait ProdPipeline extends Pipeline {
+trait ProdDocPipeline extends DocumentPipeline {
   override lazy val dataSource = new CassandraRDDSource[InputType](keySpace, table)
 }
 ```
@@ -135,7 +155,60 @@ Sparkplug launcher uses Akka remoting under the hood. Sparkplug launches jobs on
 5. When a request arrives at the client, it sends a message to the server to process the request.
 6. The job is then run by the server and the client is notified when it is done. The final result is streamed back to the client.
 
-The details of how to plug an operation pipeline into the cluster execution... TBD
+### Creating a SparkPlugin
+
+It's really simple to create a Sparkplug plugin (hereafter referred as a SparkPlugin to avoid tautology.
+
+Simply create a class that extends the `SparkPlugin` trait.
+```scala
+trait SparkPlugin {
+  def apply(input: Any): SparkOperation[Any]
+}
+```
+```scala
+package mypackage
+
+class DocumentStatsPlugin extends SparkPlugin {
+  import ProdDocPipeline._
+
+  override def apply(input: Any) = statsOperation
+}
+```
+
+In this case the `DocumentStatsPlugin` is a hook to create a `statsOperation`, the a `SparkOperation` that calculate document statistics referred to above. In this case the input is not used. 
+
+### Starting a job on the cluster
+
+The recommended way to launch a Job on the cluster is via the futures interface.
+
+```scala
+trait ClientExecutor {
+  def execute[A](pluginClass: String, data: Option[Any]): Future[A]
+  def shutDown(): Unit
+}
+```
+
+Use the `ClientExecutor` companion object to create an executor instance.
+```scala
+val executor = ClientExecutor.create()
+```
+
+Note that the executor can be called multiple times, but the `shutDown` method must be called to free up local and remote resources.
+
+If you wish to execute low latency jobs, this is the way to go.
+
+If you only intend invoking a single, long running job within a session, and don't care about the startup time, simply use the `apply` on the `ClientExecutor` object:
+```scala
+implicit val ec = scala.concurrent.ExecutionContext.global
+val docStatsFuture = ClientExecutor[DocumentStats]("mypackage.DocumentStatsPlugin", None)
+```
+
+Executing a job on a Spark cluster doesn't get easier than this!
+
+### Possible future interface changes
+
+* A moderate refactoring of the client interface is planned to support running multiple server applications (each with their own SparkContext)
+* It is also intended to provide a type safe plugin interface in the future - or at least investigate the possibility
 
 ## Projects
 
@@ -164,14 +237,21 @@ Sparkplug requires a Scala version 2.11 edition of Spark, which needs to be buil
 
 See the [spark build documentation](https://spark.apache.org/docs/latest/building-spark.html) on how to do this.
 
-In particular, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
+**OR:**
 
-*You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[*]"` to run Spark in local mode.* 
+Use the forked version of Spark: [https://github.com/springnz/spark](https://github.com/springnz/spark)
+
+* Pull the branch corresponding to the [current Spark version.](https://raw.githubusercontent.com/springnz/sparkplug/master/project/Dependencies.scala)
+* Execute the `make-sparkplug-distribution.sh` script to create a distribution.
+
+When installing Spark, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
+
+*You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[2]"` to run Spark in local mode (with 2 cores in this case).* 
 
 All jars in your client application need to be in one folder. This can be done using [SBT Pack](https://github.com/xerial/sbt-pack).
 Add the following line to your `plugins.sbt` file: `addSbtPlugin("org.xerial.sbt" % "sbt-pack" % "0.7.5")` (see the SBT Pack docs for the latest info).
 
-Then run `sbt pack` before running the tests.
+Then, before running the tests, run `sbt pack`. This copies all the .jar files to the folder `{projectdir}/target/pack/lib`. Any jars that are in this folder will be added to the submit request. 
 
 ### Environment variables
 

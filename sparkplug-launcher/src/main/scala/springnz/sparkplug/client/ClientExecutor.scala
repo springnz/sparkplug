@@ -20,7 +20,19 @@ object ClientExecutor extends Logging {
   import Coordinator._
   import Pimpers._
 
-  def create(config: Config = ConfigFactory.load().getConfig(defaultConfigSectionName)) = {
+  def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
+
+  def apply[A](pluginClass: String, data: Option[Any], config: Config = defaultConfig())(implicit ec: ExecutionContext): Future[A] = {
+    val executor = create(config)
+    executor
+      .execute(pluginClass, data)
+      .andThen {
+        case _ ⇒
+          executor.shutDown()
+      }
+  }
+
+  def create(config: Config = defaultConfig()): ClientExecutor = {
 
     val actorSystem: ActorSystem = {
       Try { ActorSystem(actorSystemName, config) }
@@ -65,7 +77,7 @@ object ClientExecutor extends Logging {
       override def shutDown() = {
         Await.result(coordinatorFuture.map {
           coordinator ⇒ coordinator ! ShutDown // to release the remote connection
-        }, 20 seconds)
+        }, 10 seconds)
         // give it 20 seconds to try to shut down the Client and Server, then just terminate the actorSystem
         log.info(s"ActorSystem '$actorSystemName' shutting down...")
         actorSystem.shutdown()
