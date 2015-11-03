@@ -2,7 +2,7 @@
 
 **A framework for creating composable and pluggable data processing pipelines using [Apache Spark](http://spark.apache.org "Apache Spark"), and running them on a cluster.**
 
-*Please note that this project is early stage work in progress, and will be subject to some breaking changes and aggressive refactoring. It will however be getting a lot of love in the next couple of months.*
+*Please note that this project is early stage work in progress, and will be subject to some breaking changes and refactoring.*
 
 Apache Spark is great, but not everything you need to use it successfully in production environments comes out the box.
 
