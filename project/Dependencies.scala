@@ -5,6 +5,8 @@ object Dependencies {
   // Version Numbers
   val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
+  val elasticsearchVersion = "2.0.0"
+  val utilLibVersion = "2.4.0-SNAPSHOT" // TODO: switch to a published version
 
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-M2",
@@ -22,6 +24,7 @@ object Dependencies {
   // Spark Data
   val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % cassandraConnectorVersionMap(sparkVersion)
   val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % elasticSearchSparkVersionMap(sparkVersion)
+  val elasticsearch = "org.elasticsearch" % "elasticsearch" % elasticsearchVersion % Test
 
   // Other Data Drivers
   val mySqlDriver = "mysql" % "mysql-connector-java" % "5.1.36"
@@ -47,14 +50,14 @@ object Dependencies {
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.4.1"
 
   // SpringNZ projects
-  val utilLib = "springnz" %% "util-lib" % "2.3.0"
+  val utilLib = "springnz" %% "util-lib" % utilLibVersion changing()
 
   // Share test
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % Test
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % Test
 
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
-  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver)
+  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticsearch)
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
@@ -87,3 +90,5 @@ object Dependencies {
 
   val dependencyOverridesSet = Set(jacksonOverride)
 }
+
+
