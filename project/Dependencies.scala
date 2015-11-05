@@ -24,7 +24,7 @@ object Dependencies {
   // Spark Data
   val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % cassandraConnectorVersionMap(sparkVersion)
   val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % elasticSearchSparkVersionMap(sparkVersion)
-  val elasticsearch = "org.elasticsearch" % "elasticsearch" % elasticsearchVersion % Test
+  val elasticsearch = "org.elasticsearch" % "elasticsearch" % elasticsearchVersion
 
   // Other Data Drivers
   val mySqlDriver = "mysql" % "mysql-connector-java" % "5.1.36"
@@ -87,8 +87,9 @@ object Dependencies {
   // Dependency overrides
   // This override is needed because Spark uses a later version of Jackson that breaks play-json
   val jacksonOverride = "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.4"
+  val guavaOverride = "com.google.guava" % "guava" % "18.0"
 
-  val dependencyOverridesSet = Set(jacksonOverride)
+  val dependencyOverridesSet = Set(jacksonOverride, guavaOverride)
 }
 
 
