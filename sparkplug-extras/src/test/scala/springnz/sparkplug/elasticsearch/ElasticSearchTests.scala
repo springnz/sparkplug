@@ -64,7 +64,7 @@ class ESExporterTest extends WordSpec with Fixture with ShouldMatchers with Logg
 
       result._2 shouldBe a[Success[_]]
       val mapArray: Array[Map[String, Any]] = result._1
-      mapArray should have length 5
+      mapArray.length shouldBe 5
 
       val verifiedOutput = result._3
       val verifiedJson = result._3 map {
