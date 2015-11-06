@@ -1,10 +1,8 @@
-package springnz.sparkplug.data
+package springnz.sparkplug.elasticsearch
 
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.rdd.RDD
 import org.elasticsearch.spark._
-import springnz.sparkplug.core.{ SparkOperation, SparkProcess }
-import springnz.sparkplug.data.ESExporter._
+import springnz.sparkplug.core.SparkOperation
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -23,8 +21,7 @@ class ESExporter[K: ClassTag, V: ClassTag](
   extraConfig: Map[String, String] = Map.empty)
     extends Serializable {
 
-  val config = ConfigFactory.load()
-  val indexName = config.getString(s"spark.es.resourceIndex.$resourceIndex")
+  import ESExporter._
 
   val configMap: Map[String, String] = Map[String, String](
     "es.mapping.id" -> idField,
@@ -35,7 +32,7 @@ class ESExporter[K: ClassTag, V: ClassTag](
   def export(dataSource: RDD[Map[K, V]]): SparkOperation[ESExportResult[K, V]] = {
     val savedData: SparkOperation[Try[Unit]] = SparkOperation { _ ⇒
       Try {
-        dataSource.saveToEs(s"$indexName/$resourceType", configMap)
+        dataSource.saveToEs(s"$resourceIndex/$resourceType", configMap)
       }
     }
     val dataSourceSparkOperation = SparkOperation { _ ⇒ dataSource }
