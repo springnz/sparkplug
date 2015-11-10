@@ -1,8 +1,5 @@
 package springnz.sparkplug.examples
 
-import springnz.sparkplug.cassandra.CassandraRDDSource
-import springnz.sparkplug.examples.CassandraConstants._
-
 object WeatherDataTypes {
 
   case class StationData(
@@ -30,8 +27,5 @@ object WeatherDataTypes {
     temperature: Double,
     windDirection: Int,
     windSpeed: Double)
-
-  class StationSource extends CassandraRDDSource[StationData](weatherKeySpace, weatherStations)
-  class RawWeatherSource extends CassandraRDDSource[RawWeatherData](weatherKeySpace, rawWeatherData)
 }
 

@@ -1,18 +1,20 @@
+//TODO: add unite tests in this project
+
 package springnz.sparkplug.data
 
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.{ DataFrame, SaveMode }
-import springnz.sparkplug.core.SparkConverters._
 import springnz.sparkplug.core.SparkOperation
+import springnz.util.Logging
 import springnz.util.Pimpers._
 
 import scala.util.Try
 
-class JdbcDataFrameExporter(dataBaseName: String, tableName: String, saveMode: SaveMode) {
+object JdbcDataFrameExporter extends Logging {
 
   protected val config = ConfigFactory.load()
 
-  def export(dataFrame: DataFrame): SparkOperation[(DataFrame, Try[Unit])] =
+  def export(dataBaseName: String, tableName: String, saveMode: SaveMode)(dataFrame: DataFrame): SparkOperation[(DataFrame, Try[Unit])] =
     SparkOperation { _ ⇒
       val writeResult = Try {
         Class.forName(config.getString("spark.mysql.driverClass"))

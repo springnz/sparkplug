@@ -1,17 +1,12 @@
-package springnz.sparkplug
+package springnz.sparkplug.examples
 
-import org.scalatest.{ ShouldMatchers, WordSpec }
-import springnz.sparkplug.examples.CassandraConstants._
-import springnz.sparkplug.examples.WeatherDataTypes._
-import springnz.sparkplug.examples._
-import springnz.sparkplug.testkit.{ CassandraTestContext, CassandraTestRDDSource }
+import org.scalatest._
+import springnz.sparkplug.testkit.CassandraTestContext
 import springnz.util.Logging
 
-trait WeatherDataJoinTestPipeline extends WeatherDataJoinPipeline {
-  override lazy val rawWeatherDataSource = new CassandraTestRDDSource[RawWeatherData](projectFolder = projectFolder, keySpace = weatherKeySpace, table = rawWeatherData)
-  override lazy val stationSource = new CassandraTestRDDSource[StationData](projectFolder = projectFolder, keySpace = weatherKeySpace, table = weatherStations)
-}
-
+/**
+  * Created by stephen on 9/11/15.
+  */
 class PipelineTests extends WordSpec with ShouldMatchers with Logging with WeatherDataJoinTestPipeline {
 
   "WeatherDataFeed" should {
@@ -43,4 +38,3 @@ class PipelineTests extends WordSpec with ShouldMatchers with Logging with Weath
     }
   }
 }
-

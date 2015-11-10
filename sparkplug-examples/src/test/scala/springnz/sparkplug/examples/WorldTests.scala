@@ -1,17 +1,18 @@
-package springnz.sparkplug
-
-import org.apache.spark.rdd.RDD
+package springnz.sparkplug.examples
 
 import org.scalatest._
-import springnz.sparkplug.core.SparkConverters._
 import springnz.sparkplug.examples.WorldDataTypes.Country
-import springnz.sparkplug.examples.{ WorldPipeline }
-import springnz.sparkplug.testkit.{ SimpleTestContext, JdbcTestDataSource }
+import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.Logging
 
+/**
+  * Created by stephen on 9/11/15.
+  */
 class WorldTests extends WordSpec with ShouldMatchers with Logging {
   "World Jdbc Feed" should {
     "return the columns and the number of countries" in new SimpleTestContext("WorldTests") with WorldTestPipeline {
+
+      import springnz.sparkplug.testkit.TestExtensions._
 
       val (countries, count) = execute(countriesOperation.takeOrderedWithCount(20)(Ordering.by(_.Name))).get
       val first = countries.head
@@ -34,8 +35,3 @@ class WorldTests extends WordSpec with ShouldMatchers with Logging {
     }
   }
 }
-
-trait WorldTestPipeline extends WorldPipeline {
-  override def dataSource = new JdbcTestDataSource("sparkplug-core", "world", "Country", sample = false)
-}
-

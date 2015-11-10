@@ -1,8 +1,9 @@
 package springnz.sparkplug.examples
 
+import springnz.sparkplug.cassandra.CassandraRDDFetcher
 import springnz.sparkplug.core.SparkPimpers._
 import springnz.sparkplug.core._
-import springnz.sparkplug.data.SparkDataSource
+import springnz.sparkplug.examples.CassandraConstants._
 import springnz.sparkplug.examples.WeatherDataTypes._
 import springnz.util.Logging
 
@@ -17,14 +18,14 @@ object WeatherDataJoin extends LocalExecutable("WeatherDataJoin") with WeatherDa
 
 trait WeatherDataJoinPipeline extends Logging {
 
-  lazy val rawWeatherDataSource: SparkDataSource[RawWeatherData] = new RawWeatherSource
-  lazy val stationSource: SparkDataSource[StationData] = new StationSource
+  def rawWeatherDataSource = CassandraRDDFetcher.selectAll[RawWeatherData](weatherKeySpace, rawWeatherData)
+  def stationSource = CassandraRDDFetcher.selectAll[StationData](weatherKeySpace, weatherStations)
 
-  lazy val rawWeatherFeed = rawWeatherDataSource().map {
+  lazy val rawWeatherFeed = rawWeatherDataSource.map {
     inputRDD ⇒ inputRDD.mapWithFilter { data ⇒ if (data.wsid.nonEmpty) Some((data.wsid, data)) else None }
   }
 
-  lazy val stationFeed = for (inputRDD ← stationSource()) yield {
+  lazy val stationFeed = for (inputRDD ← stationSource) yield {
     inputRDD.map(data ⇒ (data.id, data))
   }
 

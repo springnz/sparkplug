@@ -30,11 +30,4 @@ object CassandraUtil {
       resultSet.one().getLong(0)
     }
 
-  def fetchTable[A: ClassTag: RowReaderFactory: ValidRDDType](
-    keySpace: KeySpace, table: Table)(implicit log: Logger): SparkOperation[CassandraTableScanRDD[A]] = {
-    SparkOperation { ctx ⇒
-      log.info(s"Selecting * from table $keySpace.$table ...")
-      ctx.cassandraTable[A](keySpace.name, table.name)
-    }
-  }
 }

@@ -216,7 +216,7 @@ SparkPlug is set up as a sbt multi-project with the following subprojects:
 
 * **sparkplug-core**: The core `SparkOperation` monad and related traits and interfaces.
 * **sparkplug-extras**: Components for data access (currently Cassandra and SQL) and utilities for testing.
-* **sparkplug-examples**: Several examples for how to create Spark pipelines. A good place to start.
+* **sparkplug-springnz.sparkplug.examples**: Several springnz.sparkplug.examples for how to create Spark pipelines. A good place to start.
 * **sparkplug-executor**: The Server side of the cluster execution component.
 * **sparkplug-launcher**: The Client side of the cluster execution component.
 

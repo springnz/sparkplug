@@ -14,7 +14,7 @@ class OperationExamples extends WordSpec with ShouldMatchers with Logging {
     override def execute[A](operation: SparkOperation[A]): A = operation.run(null) // just don't use context in these tests
   }
 
-  "Simple examples" should {
+  "Simple springnz.sparkplug.examples" should {
     "operation as function" in new DummyExecutor {
       val operationInt = SparkOperation { ctx ⇒ 123 }
       val operationString = SparkOperation { ctx ⇒ "mama" }
@@ -133,7 +133,7 @@ class OperationExamples extends WordSpec with ShouldMatchers with Logging {
     }
   }
 
-  "Advanced examples" should {
+  "Advanced springnz.sparkplug.examples" should {
     "Partial graph fill" in new DummyExecutor {
       val IProduceInt = SparkOperation { ctx ⇒ 666 }
 
