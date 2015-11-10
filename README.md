@@ -110,24 +110,116 @@ This will generally be the final status after writing data to a database (`Try[U
 
 The final result of the pipeline should be a serializable type.
 
-### Testing
-
 We wish to use a different data source for test and production environments. This can be done by applying the following overrides:
 
-For the test environment:
+E.g. for the production environment, we may be using Cassandra as a data source:
 ```scala
-trait TestDocPipeline extends DocumentPipeline {
-  override lazy val dataSource = new TestRDDSource[InputType](fileName)
-}
-```
-And for production:
-```scala
+import springnz.sparkplug.cassandra.CassandraRDDFetcher
+
 trait ProdDocPipeline extends DocumentPipeline {
-  override lazy val dataSource = new CassandraRDDSource[InputType](keySpace, table)
+  override lazy val dataSource = CassandraRDDFetcher.selectAll[InputType](keySpace, table)
 }
 ```
 
+### Testing
+
 The `springnz.sparkplug.testkit` namespace contains methods to sample and persist `RDD`s at various stages in the pipeline. This enables isolated testing. It also relieves one from the burden of hand crafting test cases. 
+
+The Sparkplug testing philosophy is to write as little test code as possible!
+Each test case should be isolated to testing a single `SparkOperation`.
+
+In general one or more of the dependent spark operations in the pipeline needs to be overridden to make the pipeline suitable for testing.
+Sparkplug provides utilities to make this easy. These take the form of a family of `SparkOperation` extension methods.
+
+To enable them:
+
+```scala
+import springnz.sparkplug.testkit.TestExtensions._
+```
+
+In the test environment there are several use case cases that are dealt with:
+
+#### Generating a test data set
+
+The first use case is where we have access to a data source, say from cassandra, and we wish to generate some sample test data from it.
+
+```scala
+trait TestDocPipeline extends ProdDocPipeline {
+  override lazy val dataSource = super.dataSource.sourceFrom("DocumentInputRDDName")
+}
+```
+
+The `sourceFrom` extension method will have to following behaviour:
+
+* If the test data set is not available, it will attempt to read from the production data source (by executing the `super.dataSource` operation, and then persist the data to file in the `resources` folder.
+It has a parameter which allows you to sample the source data, to generate a manageable size test data set. The default is the `identitySampler`, which doesn't sample.
+* If the test data set is available in the test location on disk, it will depersist it and return a `RDD` of the appropriate type. It will not go to the production data source at all.
+
+#### Persisting data further down the pipeline
+
+This use case is for creating a test dataset for testing operations further down the pipeline in isolation. 
+
+For example, in the code above, the `parseOperation` may be expensive to run. We wish to create a test case to test the `statsOperation`. 
+In this case we override the `parseOperation` in the test pipeline as follows.
+
+```scala
+trait TestDocPipeline extends ProdDocPipeline {
+  ...
+  override lazy val parseOperation = super.parseOperation.saveTo("ParsedDocument")
+}
+```
+
+This makes the "ParsedDocument" test data available for consumption in any other test case. This can be done as follows:
+
+#### Retrieving test data
+
+```scala
+trait TestDocPipeline extends ProdDocPipeline {
+  override lazy val parseOperation = TestRDDSource.load[ParserInfo]("DocumentInputRDDName")
+}
+```
+
+This simply depersists the RDD where it was saved by the `saveTo` method.
+
+
+#### Anatomy of a test case
+
+A simple test case may look like this:
+
+```scala
+import springnz.sparkplug.testkit._
+
+class DocumentTests extends WordSpec with ShouldMatchers with Logging {
+  import RDDSamplers._
+  import TestExtensions._
+
+ "Document test" should {
+   "parse the document" in
+     new SimpleTestContext("DocumentTest") with TestDocPipeline {
+        // override operation
+        override lazy val parseOperation = TestRDDSource.load[ParserInfo]("DocumentInputRDDName")
+  
+        // execute
+        val (stats, statsCount) = execute(statsOperation.takeWithCount(10)).get
+        
+        // add assertions here
+        statsCount shouldBe 42 ...
+      }
+   }
+}
+```
+
+The ideal formula for a test case, or a test fixture is:
+
+1. **D**efine: Create a pipeline trait consisting of a sequence of connected `SparkOperation`s.
+1. **O**verride: Override one or more of the operations, as described above, to inject data into the pipeline.
+1. **E**xecute: Execute the test case. `TestContext`s are provided in `springnz.sparkplug.testkit.` to help with this.
+1. **R**atify: Check that the output is as assumed. This involves asserting the output of the execution.
+
+If your test cases look like this you're a Sparkplug DOER!
+
+Note that method cannot be called `RDD`s after a `SparkContext` has stopped. It is necessary to convert them as part of the tested operation. 
+For this utility extension methods `count`, `collectWithCount`, `takeWithCount` and `takeOrderedWithCount` are provided to make this easy.
 
 ## Execution on a cluster
 
@@ -216,7 +308,7 @@ SparkPlug is set up as a sbt multi-project with the following subprojects:
 
 * **sparkplug-core**: The core `SparkOperation` monad and related traits and interfaces.
 * **sparkplug-extras**: Components for data access (currently Cassandra and SQL) and utilities for testing.
-* **sparkplug-springnz.sparkplug.examples**: Several springnz.sparkplug.examples for how to create Spark pipelines. A good place to start.
+* **sparkplug-examples**: Several examples for how to create Spark pipelines. A good place to start.
 * **sparkplug-executor**: The Server side of the cluster execution component.
 * **sparkplug-launcher**: The Client side of the cluster execution component.
 
