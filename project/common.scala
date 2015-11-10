@@ -11,6 +11,7 @@ object Common {
   val repo = "https://nexus.prod.corp/content"
 
   lazy val allResolvers = Seq(
+    Resolver.mavenLocal,
     "ylabs" at s"$repo/groups/public",
     "Typesafe repository snapshots" at "http://repo.typesafe.com/typesafe/snapshots/",
     "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/",

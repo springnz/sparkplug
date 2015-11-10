@@ -2,24 +2,20 @@ package springnz.sparkplug.testkit
 
 import java.lang.Math._
 
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.partial.{ BoundedDouble, PartialResult }
 import org.apache.spark.rdd.RDD
+
 import springnz.sparkplug.util.SerializeUtils
 import springnz.util.Logging
 
 import scala.reflect.ClassTag
 
-case class RDDSamplerParams(
-  testerFraction: Double,
-  scaleParam: Double,
-  scalePower: Double,
-  minimum: Double,
-  sequential: Boolean)
+object RDDSamplers extends Logging {
+  def identitySampler[A: ClassTag](rdd: RDD[A]) = rdd
 
-object RDDSampler extends Logging {
+  def defaultSampler[A: ClassTag](sampleParams: RDDSamplerParams = sourceRDDParams)(rdd: RDD[A]) = sample(rdd, sampleParams)
 
-  val cassandraParams = RDDSamplerParams(
+  val sourceRDDParams = RDDSamplerParams(
     testerFraction = 0.0001,
     scaleParam = 3000.0,
     scalePower = 0.30102999566398,
@@ -33,8 +29,6 @@ object RDDSampler extends Logging {
     minimum = 1000000.0,
     sequential = false)
 
-  val config = ConfigFactory.load()
-
   private[sparkplug] def shrinkFactor(
     testerFraction: Double,
     scaleParam: Double,
@@ -46,18 +40,6 @@ object RDDSampler extends Logging {
     val calcFrac = Math.pow(fullLength, scalePower) / fullLength * scaleParam
     // don't bother shrinking to less than the minimum, but cap at 1.0
     min(if (minimum > 0) max(calcFrac, minimum / fullLength) else calcFrac, 1.0)
-  }
-
-  @deprecated("Configuration in case classes", "")
-  private[sparkplug] def sample[A: ClassTag](rdd: RDD[A], dataSourceType: String): RDD[A] = {
-    val testerFraction = config.getDouble(s"sampling.$dataSourceType.testerfraction")
-    val scaleParam = config.getDouble(s"sampling.$dataSourceType.scaleparam")
-    val scalePower = config.getDouble(s"sampling.$dataSourceType.scalepower")
-    val minimum = config.getDouble(s"sampling.$dataSourceType.minimum")
-    val sequential = config.getBoolean(s"sampling.$dataSourceType.sequential")
-    sample(rdd, RDDSamplerParams(
-      testerFraction = testerFraction, scaleParam = scaleParam, scalePower = scalePower, minimum = minimum,
-      sequential = sequential))
   }
 
   private[sparkplug] def sample[A: ClassTag](rdd: RDD[A], params: RDDSamplerParams): RDD[A] = {
@@ -92,5 +74,18 @@ object RDDSampler extends Logging {
       getSample(params)
     }
   }
+
+  case class RDDSamplerParams(
+      testerFraction: Double,
+      scaleParam: Double,
+      scalePower: Double,
+      minimum: Double,
+      sequential: Boolean) {
+
+    def withSequential(newSequential: Boolean): Unit = {
+      RDDSamplerParams(testerFraction, scaleParam, scalePower, minimum, newSequential)
+    }
+  }
+
 }
 

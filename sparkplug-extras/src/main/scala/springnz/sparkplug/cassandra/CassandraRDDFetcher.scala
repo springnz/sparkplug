@@ -10,18 +10,18 @@ import springnz.util.Logging
 
 import scala.reflect.ClassTag
 
-class CassandraRDDFetcher[A: ClassTag: RowReaderFactory: ValidRDDType](keySpace: KeySpace, table: Table)
+object CassandraRDDFetcher
     extends Logging {
 
   CustomTypeConverters.registerTimeConverters()
 
-  def selectAll(): SparkOperation[RDD[A]] =
+  def selectAll[A: ClassTag: RowReaderFactory: ValidRDDType](keySpace: KeySpace, table: Table): SparkOperation[RDD[A]] =
     SparkOperation { ctx ⇒
       log.info(s"Fetching RDD from keyspace='$keySpace' table='$table' (full table)...")
       ctx.cassandraTable[A](keySpace.name, table.name)
     }
 
-  def selectWhere(cql: String, values: Any*): SparkOperation[RDD[A]] =
+  def selectWhere[A: ClassTag: RowReaderFactory: ValidRDDType](keySpace: KeySpace, table: Table, cql: String, values: Any*): SparkOperation[RDD[A]] =
     SparkOperation { ctx ⇒
       log.info(s"Fetching RDD from keyspace='$keySpace' table='$table' with filter [$cql] [$values] ...")
       ctx.cassandraTable[A](keySpace.name, table.name).where(cql, values: _*)

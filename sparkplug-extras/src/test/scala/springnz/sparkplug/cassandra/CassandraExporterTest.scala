@@ -44,11 +44,11 @@ class CassandraExporterTest extends WordSpec with ShouldMatchers with Logging {
 
       // Export the rows to Cassandra
 
-      val exporter = new CassandraExporter[TestRow](testRDDSource, keySpace, table, Some(createQuery))
+      val exporter = CassandraExporter[TestRow](testRDDSource, keySpace, table, Some(createQuery))
 
       val dropTableThenExport = for {
         _ ← CassandraUtil.dropTable(keySpace, table)
-        (rdd, exportResult) ← exporter()
+        (rdd, exportResult) ← exporter
       } yield {
         (rdd.collect(), exportResult)
       }

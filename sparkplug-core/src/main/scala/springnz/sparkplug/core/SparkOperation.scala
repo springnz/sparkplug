@@ -1,7 +1,9 @@
 package springnz.sparkplug.core
 
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 
+import scala.reflect.ClassTag
 import scalaz._
 
 sealed trait SparkOperation[+A] {
@@ -25,10 +27,6 @@ object SparkOperation {
 
     override def point[A](a: ⇒ A): SparkOperation[A] = SparkOperation(_ ⇒ a)
   }
-}
-
-trait SparkProcess[+A] {
-  def apply(): SparkOperation[A]
 }
 
 trait SparkPlugin {

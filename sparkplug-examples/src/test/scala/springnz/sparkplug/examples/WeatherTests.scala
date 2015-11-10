@@ -1,19 +1,17 @@
-package springnz.sparkplug
+package springnz.sparkplug.examples
 
 import org.scalatest.{ ShouldMatchers, WordSpec }
-import springnz.sparkplug.examples.WeatherDataTypes._
-import springnz.sparkplug.examples._
-import springnz.sparkplug.testkit.{ CassandraTestContext, CassandraTestRDDSource }
+import springnz.sparkplug.testkit.CassandraTestContext
 import springnz.util.Logging
 
 class WeatherTests extends WordSpec with ShouldMatchers with Logging {
-  import CassandraConstants._
+  import springnz.sparkplug.testkit.TestExtensions._
 
   "RawWeatherCount" should {
     "return success with the number of rows" in new CassandraTestContext("RawWeatherCount") {
 
       val rowCountResult = execute((new SimpleNonDIExample() {
-        override def weatherDataSource = new CassandraTestRDDSource[RawWeatherData](projectFolder = projectFolder, keySpace = weatherKeySpace, table = rawWeatherData)
+        override def weatherDataSource = super.weatherDataSource.sourceFrom("RawWeatherData")
       })())
       rowCountResult.get.toInt should be > 0
     }
@@ -22,7 +20,7 @@ class WeatherTests extends WordSpec with ShouldMatchers with Logging {
   // This test case uses the MacWire DI framework to create and wire the dependencies
   "RawWeatherEvents" should {
     "return success with the first 10 URLs in alphabetical order" in new CassandraTestContext("RawWeatherEvents") with SimplePipeline {
-      override lazy val weatherDataSource = new CassandraTestRDDSource[RawWeatherData](projectFolder = projectFolder, keySpace = weatherKeySpace, table = rawWeatherData)
+      override lazy val weatherDataSource = super.weatherDataSource.sourceFrom("RawWeatherData")
       val rowCountResult = execute(dIExample)
       val rows = rowCountResult.get
       log.debug(s"${rows.length} rows found.")
@@ -33,7 +31,7 @@ class WeatherTests extends WordSpec with ShouldMatchers with Logging {
   "StationLatLon" should {
     "return an RDD with all the solver lat/longs" in new CassandraTestContext("StationLatLon") {
       val latLongOperation = (new StationLatLon {
-        override def stationDataSource = new CassandraTestRDDSource[StationData](projectFolder = projectFolder, keySpace = weatherKeySpace, table = weatherStations)
+        override def stationDataSource = super.stationDataSource.sourceFrom("StationData")
       })()
       val latLongResult = execute(latLongOperation map { latLongRDD ⇒
         log.debug(s"Produced an RDD of size $latLongRDD.count")

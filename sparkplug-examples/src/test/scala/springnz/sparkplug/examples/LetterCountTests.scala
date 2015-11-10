@@ -1,9 +1,8 @@
-package springnz.sparkplug
+package springnz.sparkplug.examples
 
-import springnz.sparkplug.examples._
+import org.scalatest.{ ShouldMatchers, WordSpec }
 import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.Logging
-import org.scalatest.{ ShouldMatchers, WordSpec }
 
 class LetterCountTests extends WordSpec with ShouldMatchers with Logging {
   "letter count" should {
