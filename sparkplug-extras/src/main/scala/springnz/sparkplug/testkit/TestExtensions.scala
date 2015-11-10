@@ -88,8 +88,8 @@ object TestExtensions {
 
   }
 
-  // Makes a count method available on a SparkOperation that returns a RDD
-  implicit class CountConverter[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
+  // Converts RDDs to Types that can be verified in test assertions
+  implicit class TestResultConverter[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
     def count = {
       operation.map { rdd ⇒
         val n = rdd.count
@@ -98,15 +98,31 @@ object TestExtensions {
       }
     }
 
-    def takeWithCount(n: Int) = {
+    def collect(): SparkOperation[Array[A]] = {
       operation.map { rdd ⇒
         val count = rdd.count
         log.debug(s"Produced an RDD of size $count")
-        (rdd.take(n), count)
+        rdd.collect()
       }
     }
 
-    def collectWithCount() = {
+    def take(n: Int): SparkOperation[Array[A]] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        rdd.take(n)
+      }
+    }
+
+    def takeOrdered(n: Int)(implicit ord: Ordering[A]): SparkOperation[Array[A]] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        rdd.takeOrdered(n)
+      }
+    }
+
+    def collectWithCount(): SparkOperation[(Array[A], Long)] = {
       operation.map { rdd ⇒
         val count = rdd.count
         log.debug(s"Produced an RDD of size $count")
@@ -114,14 +130,20 @@ object TestExtensions {
       }
     }
 
-    def takeOrderedWithCount(n: Int)(implicit ord: Ordering[A]) = {
+    def takeWithCount(n: Int): SparkOperation[(Array[A], Long)] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        (rdd.take(n), count)
+      }
+    }
+
+    def takeOrderedWithCount(n: Int)(implicit ord: Ordering[A]): SparkOperation[(Array[A], Long)] = {
       operation.map { rdd ⇒
         val count = rdd.count
         log.debug(s"Produced an RDD of size $count")
         (rdd.takeOrdered(n), count)
       }
     }
-
   }
-
 }

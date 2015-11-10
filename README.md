@@ -219,7 +219,8 @@ The ideal formula for a test case, or a test fixture is:
 If your test cases look like this you're a Sparkplug DOER!
 
 Note that methods cannot be called on `RDD`s after a `SparkContext` has stopped. It is necessary to convert them as part of the tested operation.
-For this utility extension methods `count`, `collectWithCount`, `takeWithCount` and `takeOrderedWithCount` are provided to make this easy.
+For this utility extension methods `count`, `collect`, `take` and `takeOrdered` are provided to make this easy. 
+Corresponding `*withCount` methods are provided that return the count of the `RDD` as well.
 
 ## Execution on a cluster
 
