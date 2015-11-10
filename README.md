@@ -1,4 +1,4 @@
-# ![Sparkplug](https://raw.githubusercontent.com/springnz/sparkplug/master/logos/sparkplug2.jpg "Sparkplug framework for functional Spark") Sparkplug 
+# ![Sparkplug](https://raw.githubusercontent.com/springnz/sparkplug/master/logos/sparkplug2.jpg "Sparkplug framework for functional Spark") Sparkplug
 
 **A framework for creating composable and pluggable data processing pipelines using [Apache Spark](http://spark.apache.org "Apache Spark"), and running them on a cluster.**
 
@@ -9,7 +9,7 @@ Apache Spark is great, but not everything you need to use it successfully in pro
 This project aims to bridge the gap. In particular, it addresses two specific requirements.
 
 1. Creating data processing pipelines that are easy to reuse and test in isolation.
-2. Providing a lightweight mechanism for launching and executing Spark processes on a cluster. 
+2. Providing a lightweight mechanism for launching and executing Spark processes on a cluster.
 
 These two requirements are quite different. Indeed it is possible to use Sparkplug for either of them without taking advantage of the other. For example it is possible to create composable data pipelines as described below, then execute them directly, or using any other Spark cluster execution or job manager of your choice.
 
@@ -44,13 +44,13 @@ val letterCount: SparkOperation[Long] = for {
 
 In this case we are counting the number of words that contain the letter 'a'.
 
-Proceeding as in this simple example, we can create complex data processing pipelines, mainly using monadic operations. 
+Proceeding as in this simple example, we can create complex data processing pipelines, mainly using monadic operations.
 
 These include:
 
 * Bread and butter map and flatmap to compose operations (as above).
 * Combining operations (e.g. convert a tuple of `SparkOperation`s to a `SparkOperation` of tuples).
-* Sequence operations (e.g. convert a list of `SparkOperation`s to a `SparkOperation` of list). 
+* Sequence operations (e.g. convert a list of `SparkOperation`s to a `SparkOperation` of list).
 
 Then once we have composed the `SparkOperation` as desired, it is against a given `SparkContext`.
 
@@ -62,7 +62,7 @@ The types of `SparkOperation`s are typically, at least until the final step of t
 
 ### Why go to all this trouble?
 
-For simple processes, as above, it is overkill. However, non-trivial data processing pipelines typically involve many stages, and often there are many permutations over which these steps may be applied in different scenarios. 
+For simple processes, as above, it is overkill. However, non-trivial data processing pipelines typically involve many stages, and often there are many permutations over which these steps may be applied in different scenarios.
 
 Splitting the process into discrete, separate operations has two main advantages:
 
@@ -70,18 +70,18 @@ Splitting the process into discrete, separate operations has two main advantages
 2. They can be unit tested in isolation. There are several utilities included in the project that facilitate this. This is covered in the section on testing below.
 3. Operations can be glued together using compact functional code.
 
-Note that this pattern involves decoupling the pipeline definition from the pipeline execution, which enables a great deal of flexibility over how one defines pipelines and executes them. 
+Note that this pattern involves decoupling the pipeline definition from the pipeline execution, which enables a great deal of flexibility over how one defines pipelines and executes them.
 
 It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
 ### Wiring together SparkOperation components
 
-A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. Then there are operations that process this input data. 
+A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. Then there are operations that process this input data.
 
 As a simple example, consider a pipeline processing a corpus of documents:
 
-1. The first step processes input data into a `RDD` of `Document`s. 
-2. The next step is to transform `Document`s into `ParserInfo`s. 
+1. The first step processes input data into a `RDD` of `Document`s.
+2. The next step is to transform `Document`s into `ParserInfo`s.
 3. The final step is to calculate document statistics, and return a `DocumentStats` object with summary statistics.
 
 This can be represented by the following pipeline trait.
@@ -93,18 +93,18 @@ trait DocumentPipeline {
   lazy val createOperation: SparkOperation[RDD[Document]] = dataSource.map {
     input ⇒ createDocument(input)
   }
-  
+
   lazy val parseOperation: SparkOperation[RDD[ParserInfo]] = createOperation.map {
     doc ⇒ parseDocument(doc)
   }
-  
+
   lazy val statsOperation: SparkOperation[DocumentStats] = parseOperation.map {
     parsedDoc ⇒ calculateStats(parsedDoc)
   }
 }
 ```
 
-Note that `SparkOperation`s need not return `RDD`s, and in general, the final step in the pipeline will generally return something other than a `RDD`. 
+Note that `SparkOperation`s need not return `RDD`s, and in general, the final step in the pipeline will generally return something other than a `RDD`.
 
 This will generally be the final status after writing data to a database (`Try[Unit]` is good for this), or some summary/aggregate result.
 
@@ -123,7 +123,7 @@ trait ProdDocPipeline extends DocumentPipeline {
 
 ### Testing
 
-The `springnz.sparkplug.testkit` namespace contains methods to sample and persist `RDD`s at various stages in the pipeline. This enables isolated testing. It also relieves one from the burden of hand crafting test cases. 
+The `springnz.sparkplug.testkit` namespace contains methods to sample and persist `RDD`s at various stages in the pipeline. This enables isolated testing. It also relieves one from the burden of hand crafting test cases.
 
 The Sparkplug testing philosophy is to write as little test code as possible!
 Each test case should be isolated to testing a single `SparkOperation`.
@@ -149,7 +149,7 @@ trait TestDocPipeline extends ProdDocPipeline {
 }
 ```
 
-The `sourceFrom` extension method will have to following behaviour:
+The `sourceFrom` extension method will have the following behaviour:
 
 * If the test data set is not available, it will attempt to read from the production data source (by executing the `super.dataSource` operation, and then persist the data to file in the `resources` folder.
 It has a parameter which allows you to sample the source data, to generate a manageable size test data set. The default is the `identitySampler`, which doesn't sample.
@@ -157,9 +157,9 @@ It has a parameter which allows you to sample the source data, to generate a man
 
 #### Persisting data further down the pipeline
 
-This use case is for creating a test dataset for testing operations further down the pipeline in isolation. 
+This use case is for creating a test dataset for testing operations further down the pipeline in isolation.
 
-For example, in the code above, the `parseOperation` may be expensive to run. We wish to create a test case to test the `statsOperation`. 
+For example, in the code above, the `parseOperation` may be expensive to run. We wish to create a test case to test the `statsOperation`.
 In this case we override the `parseOperation` in the test pipeline as follows.
 
 ```scala
@@ -198,10 +198,10 @@ class DocumentTests extends WordSpec with ShouldMatchers with Logging {
      new SimpleTestContext("DocumentTest") with TestDocPipeline {
         // override operation
         override lazy val parseOperation = TestRDDSource.load[ParserInfo]("DocumentInputRDDName")
-  
+
         // execute
         val (stats, statsCount) = execute(statsOperation.takeWithCount(10)).get
-        
+
         // add assertions here
         statsCount shouldBe 42 ...
       }
@@ -218,7 +218,7 @@ The ideal formula for a test case, or a test fixture is:
 
 If your test cases look like this you're a Sparkplug DOER!
 
-Note that method cannot be called `RDD`s after a `SparkContext` has stopped. It is necessary to convert them as part of the tested operation. 
+Note that methods cannot be called on `RDD`s after a `SparkContext` has stopped. It is necessary to convert them as part of the tested operation.
 For this utility extension methods `count`, `collectWithCount`, `takeWithCount` and `takeOrderedWithCount` are provided to make this easy.
 
 ## Execution on a cluster
@@ -243,7 +243,7 @@ Sparkplug launcher uses Akka remoting under the hood. Sparkplug launches jobs on
 1. The client has an `ActorSystem` running, and an execution client actor.
 2. This client invokes `spark-submit` to run an application on the server.
 3. The server starts up it's own `ActorSystem`, and once this is done, sends a message to inform the client.
-4. It creates a `SparkContext`, which is then available to service request to run Spark jobs that it may receive. The service is now ready for action. 
+4. It creates a `SparkContext`, which is then available to service request to run Spark jobs that it may receive. The service is now ready for action.
 5. When a request arrives at the client, it sends a message to the server to process the request.
 6. The job is then run by the server and the client is notified when it is done. The final result is streamed back to the client.
 
@@ -267,7 +267,7 @@ class DocumentStatsPlugin extends SparkPlugin {
 }
 ```
 
-In this case the `DocumentStatsPlugin` is a hook to create a `statsOperation`, the a `SparkOperation` that calculate document statistics referred to above. In this case the input is not used. 
+In this case the `DocumentStatsPlugin` is a hook to create a `statsOperation`, the a `SparkOperation` that calculate document statistics referred to above. In this case the input is not used.
 
 ### Starting a job on the cluster
 
@@ -322,9 +322,9 @@ Then clone the repository and compile / test in sbt.
 
 The cluster execution component has a few more moving parts:
 
-As a bare minimum, Spark needs to be installed on the local machine. 
+As a bare minimum, Spark needs to be installed on the local machine.
 
-The standard Spark packages are all based on Scala 2.10. 
+The standard Spark packages are all based on Scala 2.10.
 Sparkplug requires a Scala version 2.11 edition of Spark, which needs to be built from source.
 
 See the [spark build documentation](https://spark.apache.org/docs/latest/building-spark.html) on how to do this.
@@ -338,12 +338,12 @@ Use the forked version of Spark: [https://github.com/springnz/spark](https://git
 
 When installing Spark, make sure the `SPARK_MASTER` and `SPARK_HOME` environment variables have been set.
 
-*You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[2]"` to run Spark in local mode (with 2 cores in this case).* 
+*You can start a simple cluster on your workstation, or you can set `SPARK_MASTER="local[2]"` to run Spark in local mode (with 2 cores in this case).*
 
 All jars in your client application need to be in one folder. This can be done using [SBT Pack](https://github.com/xerial/sbt-pack).
 Add the following line to your `plugins.sbt` file: `addSbtPlugin("org.xerial.sbt" % "sbt-pack" % "0.7.5")` (see the SBT Pack docs for the latest info).
 
-Then, before running the tests, run `sbt pack`. This copies all the .jar files to the folder `{projectdir}/target/pack/lib`. Any jars that are in this folder will be added to the submit request. 
+Then, before running the tests, run `sbt pack`. This copies all the .jar files to the folder `{projectdir}/target/pack/lib`. Any jars that are in this folder will be added to the submit request.
 
 ### Environment variables
 
