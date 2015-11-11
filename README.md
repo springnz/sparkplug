@@ -219,7 +219,7 @@ The ideal formula for a test case, or a test fixture is:
 If your test cases look like this you're a Sparkplug DOER!
 
 Note that methods cannot be called on `RDD`s after a `SparkContext` has stopped. It is necessary to convert them as part of the tested operation.
-For this utility extension methods `count`, `collect`, `take` and `takeOrdered` are provided to make this easy. 
+For this utility extension methods `count`, `collect`, `take` and `takeOrdered` are provided to make this easy.
 Corresponding `*withCount` methods are provided that return the count of the `RDD` as well.
 
 ## Execution on a cluster
@@ -315,7 +315,7 @@ SparkPlug is set up as a sbt multi-project with the following subprojects:
 
 ## Build and Test
 
-There is a build dependency on [Spring NZ util-lib](https://github.com/springnz/util-lib). The easist is to clone the repository and run `sbt publish` (or `sbt publishLocal`) to publish to your (local) repository.
+There is a build dependency on [Spring NZ util-lib](https://github.com/springnz/util-lib). The easiest is to clone the repository and run `sbt publish` (or `sbt publishLocal`) to publish to your (local) repository.
 
 Then clone the repository and compile / test in sbt.
 
