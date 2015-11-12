@@ -48,11 +48,9 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
         }
       }
 
-      val exporter = new ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = port))
-
       val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[Unit])] = for {
         rdd ← operation
-        exportOp ← exporter.export(rdd)
+        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = port))(rdd)
       } yield exportOp
 
       val verify = SparkOperation { ctx ⇒
