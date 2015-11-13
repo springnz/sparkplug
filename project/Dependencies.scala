@@ -6,7 +6,8 @@ object Dependencies {
   val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
   val elasticsearchVersion = "2.0.0"
-  val utilLibVersion = "2.4.0-SNAPSHOT" // TODO: switch to a published version
+  val utilLibVersion = "2.6.0"
+  val elasticsearchLibVersion = "0.1.0"
 
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-M2",
@@ -41,23 +42,27 @@ object Dependencies {
   // logging
   val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
   val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.10"
-  val logBackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val logBackCore = "ch.qos.logback" % "logback-core" % "1.1.3"
+  val logBackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val logBackDependencies = Seq(logBackClassic, logBackCore)
+  val logBackCoreTest = "ch.qos.logback" % "logback-core" % "1.1.3" % Test
+  val logBackClassicTest = "ch.qos.logback" % "logback-classic" % "1.1.3" % Test
+  val logBackTestDependencies = Seq(logBackCoreTest, logBackClassicTest)
 
   // Shared compile
   val playJson = "com.typesafe.play" %% "play-json" % "2.4.2" exclude ("org.slf4j", "slf4j-log4j12")
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.4.1"
 
   // SpringNZ projects
-  val utilLib = "springnz" %% "util-lib" % utilLibVersion changing()
+  val utilLib = "springnz" %% "util-lib" % utilLibVersion
+  val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
 
   // Share test
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % Test
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % Test
 
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
-  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticsearch)
+  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticsearch, elasticSearchLib)
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
@@ -69,6 +74,7 @@ object Dependencies {
 
   val sparkExtraLibDependencies = sparkCoreLibDependencies ++
     sparkDataDependencies ++
+    logBackTestDependencies ++
     sharedDependencies
 
   val sparkExampleLibDependencies = sparkExtraLibDependencies ++
@@ -91,5 +97,4 @@ object Dependencies {
 
   val dependencyOverridesSet = Set(jacksonOverride, guavaOverride)
 }
-
 

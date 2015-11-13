@@ -3,7 +3,9 @@ package springnz.sparkplug.elasticsearch
 import org.apache.spark.rdd.RDD
 import org.scalatest._
 import play.api.libs.json._
+import springnz.elasticsearch.ESServer
 import springnz.sparkplug.core.SparkOperation
+import springnz.sparkplug.elasticsearch.ESExporter.ESExporterParams
 import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.{ JsUtil, Logging }
 
@@ -11,8 +13,7 @@ import org.elasticsearch.spark._
 
 import scala.util.{ Try, Success }
 
-trait Fixture {
-  val esServer = new ElasticsearchServer("ESExporterTest")
+class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
 
   val testData = ESExporterTest.testData
 
@@ -20,20 +21,24 @@ trait Fixture {
     case JsArray(sequence) ⇒ sequence
     case _                 ⇒ Seq.empty[JsValue]
   }) map { jsValue ⇒ Json.stringify(jsValue) }
-}
 
-class ESExporterTest extends WordSpec with Fixture with ShouldMatchers with Logging with BeforeAndAfterAll {
-  override def beforeAll() = {
-    log.info("Elasticsearch server starting...")
-    esServer.start()
-  }
-  override def afterAll() = {
-    log.info("Elasticsearch server stopping...")
-    esServer.stop()
+  override type FixtureParam = ESServer
+  val port = "9250"
+
+  override def withFixture(test: OneArgTest) = {
+    val server = new ESServer("test-cluster", port)
+
+    try {
+      server.start()
+      withFixture(test.toNoArgTest(server)) // "loan" the fixture to the test
+    } finally
+      server.stop() // clean up the fixture
+
   }
 
   "ElasticSearchExporter" should {
-    "Save to ES" in new SimpleTestContext("ESExporterTest") {
+    "Save to ES" in { server ⇒
+      val context = new SimpleTestContext("ESExporterTest")
       val operation = SparkOperation { ctx ⇒
         val rdd = ctx.parallelize(testDataArray)
         rdd.map { jsonString ⇒
@@ -43,15 +48,13 @@ class ESExporterTest extends WordSpec with Fixture with ShouldMatchers with Logg
         }
       }
 
-      val exporter = new ESExporter[String, Any]("estestindex", "estesttype")
-
       val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[Unit])] = for {
         rdd ← operation
-        exportOp ← exporter.export(rdd)
+        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = port))(rdd)
       } yield exportOp
 
       val verify = SparkOperation { ctx ⇒
-        ctx.esJsonRDD("estestindex/estesttype")
+        ctx.esJsonRDD("estestindex/estesttype", Map("es.port" -> port))
       }
 
       val verifiedResult = for {
@@ -60,7 +63,7 @@ class ESExporterTest extends WordSpec with Fixture with ShouldMatchers with Logg
       } yield (rddOfMaps.collect(), tryUnit, verifiedRdd.collect())
 
       log.info("Executing Spark process to run and insert...")
-      val result = execute(verifiedResult).get
+      val result = context.execute(verifiedResult).get
 
       result._2 shouldBe a[Success[_]]
       val mapArray: Array[Map[String, Any]] = result._1

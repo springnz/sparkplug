@@ -18,7 +18,10 @@ object Common {
     "Java.net Maven2 Repository" at "http://download.java.net/maven/2/",
     "sonatype-oss" at "http://oss.sonatype.org/content/repositories/snapshots",
     "sonatype-oss-public" at "https://oss.sonatype.org/content/groups/public/",
-    Resolver.bintrayRepo("pathikrit", "maven"))
+    Resolver.bintrayRepo("pathikrit", "maven"), // for betterfiles
+    "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/" // for wabisabi
+  )
+
 
   lazy val commonSettings = Seq(
     organization := "springnz",

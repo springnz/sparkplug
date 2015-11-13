@@ -8,8 +8,20 @@ import springnz.util.Logging
 object ESJsonRDDSource
     extends Logging {
 
-  def apply(resourceIndex: String, resourceType: String): SparkOperation[RDD[(String, String)]] = SparkOperation { ctx ⇒
-    val rdd: RDD[(String, String)] = ctx.esJsonRDD(s"$resourceIndex/$resourceType")
+  case class ESDataSourceParams(nodes: String = "",
+    port: String = "",
+    extraConfig: Map[String, String] = Map.empty)
+
+  def apply(resourceIndex: String, resourceType: String, dataSourceParams: ESDataSourceParams = ESDataSourceParams()): SparkOperation[RDD[(String, String)]] = SparkOperation { ctx ⇒
+
+    val configMap: Map[String, String] = Map[String, String](
+      "es.nodes" -> dataSourceParams.nodes,
+      "es.port" -> dataSourceParams.port)
+      .filter { case (_, v) ⇒ v.nonEmpty } ++ dataSourceParams.extraConfig
+
+    log.info(s"Fetching data from elasticsearch $resourceIndex/$resourceType with config: $configMap")
+
+    val rdd: RDD[(String, String)] = ctx.esJsonRDD(s"$resourceIndex/$resourceType", configMap)
     rdd
   }
 }
