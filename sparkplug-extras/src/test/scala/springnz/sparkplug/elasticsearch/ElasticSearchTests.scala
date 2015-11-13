@@ -1,17 +1,16 @@
 package springnz.sparkplug.elasticsearch
 
 import org.apache.spark.rdd.RDD
+import org.elasticsearch.spark._
 import org.scalatest._
 import play.api.libs.json._
-import springnz.elasticsearch.server.ESServer
+import springnz.elasticsearch.server.{ ESServer, ESServerParams }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.ESExporterParams
 import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.{ JsUtil, Logging }
 
-import org.elasticsearch.spark._
-
-import scala.util.{ Try, Success }
+import scala.util.{ Success, Try }
 
 class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
 
@@ -26,7 +25,7 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
   val port = 9250
 
   override def withFixture(test: OneArgTest) = {
-    val server = new ESServer("test-cluster", Some(port))
+    val server = new ESServer("test-cluster", ESServerParams(httpPort = Some(port)))
 
     try {
       server.start()

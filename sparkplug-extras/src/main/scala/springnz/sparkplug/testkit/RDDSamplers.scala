@@ -13,16 +13,22 @@ import scala.reflect.ClassTag
 object RDDSamplers extends Logging {
   def identitySampler[A: ClassTag](rdd: RDD[A]) = rdd
 
-  def defaultSampler[A: ClassTag](sampleParams: RDDSamplerParams = sourceRDDParams)(rdd: RDD[A]) = sample(rdd, sampleParams)
+  def shrinkingSampler[A: ClassTag](sampleParams: RDDShrinkingSamplerParams = sourceRDDParams)(rdd: RDD[A]) = shrinkingSample(rdd, sampleParams)
 
-  val sourceRDDParams = RDDSamplerParams(
+  def takeSampler[A: ClassTag](count: Int, partitions: Int = -1)(rdd: RDD[A]) = {
+    val sc = rdd.sparkContext
+    val parts = if (partitions > 0) partitions else sc.defaultParallelism
+    sc.parallelize(rdd.take(count), parts)
+  }
+
+  val sourceRDDParams = RDDShrinkingSamplerParams(
     testerFraction = 0.0001,
     scaleParam = 3000.0,
     scalePower = 0.30102999566398,
     minimum = 1000000.0,
     sequential = false)
 
-  val derivedRDDParams = RDDSamplerParams(
+  val derivedRDDParams = RDDShrinkingSamplerParams(
     testerFraction = 0.1,
     scaleParam = 1.0,
     scalePower = 1.0,
@@ -42,13 +48,13 @@ object RDDSamplers extends Logging {
     min(if (minimum > 0) max(calcFrac, minimum / fullLength) else calcFrac, 1.0)
   }
 
-  private[sparkplug] def sample[A: ClassTag](rdd: RDD[A], params: RDDSamplerParams): RDD[A] = {
+  private[sparkplug] def shrinkingSample[A: ClassTag](rdd: RDD[A], params: RDDShrinkingSamplerParams): RDD[A] = {
 
-    def getSample(params: RDDSamplerParams): RDD[A] = {
+    def getSample(params: RDDShrinkingSamplerParams): RDD[A] = {
       val approxSize: PartialResult[BoundedDouble] = rdd.countApprox(60000, 0.95)
       val sampleLength = approxSize.initialValue.mean * params.testerFraction
       if (sampleLength < 50) {
-        // take a bigger sample
+        // take a bigger shrinkingSample
         val updatedTesterFraction = params.testerFraction * 50 / sampleLength
         getSample(params.copy(testerFraction = updatedTesterFraction))
       } else {
@@ -75,7 +81,7 @@ object RDDSamplers extends Logging {
     }
   }
 
-  case class RDDSamplerParams(
+  case class RDDShrinkingSamplerParams(
       testerFraction: Double,
       scaleParam: Double,
       scalePower: Double,
@@ -83,7 +89,7 @@ object RDDSamplers extends Logging {
       sequential: Boolean) {
 
     def withSequential(newSequential: Boolean): Unit = {
-      RDDSamplerParams(testerFraction, scaleParam, scalePower, minimum, newSequential)
+      RDDShrinkingSamplerParams(testerFraction, scaleParam, scalePower, minimum, newSequential)
     }
   }
 
