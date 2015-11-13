@@ -13,7 +13,7 @@ object ESExporter {
   type ESExportResult[K, V] = (RDD[Map[K, V]], Try[Unit])
 
   case class ESExporterParams(nodes: String = "",
-    port: String = "",
+    port: Option[Int] = None,
     idField: String = "",
     includeFields: String = "",
     excludeFields: String = "",
@@ -22,12 +22,15 @@ object ESExporter {
   def apply[K: ClassTag, V: ClassTag](resourceIndex: String,
     resourceType: String,
     exporterParams: ESExporterParams = ESExporterParams())(dataSource: RDD[Map[K, V]]): SparkOperation[ESExportResult[K, V]] = {
+
     val savedData: SparkOperation[Try[Unit]] = SparkOperation { _ ⇒
       Try {
+        import ESJsonRDDSource._
+        val portString: String = exporterParams.port.optionToString()
         val configMap: Map[String, String] = Map[String, String](
           "es.mapping.id" -> exporterParams.idField,
           "es.nodes" -> exporterParams.nodes,
-          "es.port" -> exporterParams.port,
+          "es.port" -> portString,
           "es.mapping.include" -> exporterParams.includeFields,
           "es.mapping.exclude" -> exporterParams.excludeFields)
           .filter { case (_, v) ⇒ v.nonEmpty } ++ exporterParams.extraConfig

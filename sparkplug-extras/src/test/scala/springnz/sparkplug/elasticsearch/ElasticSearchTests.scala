@@ -3,7 +3,7 @@ package springnz.sparkplug.elasticsearch
 import org.apache.spark.rdd.RDD
 import org.scalatest._
 import play.api.libs.json._
-import springnz.elasticsearch.ESServer
+import springnz.elasticsearch.server.ESServer
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.ESExporterParams
 import springnz.sparkplug.testkit.SimpleTestContext
@@ -23,10 +23,10 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
   }) map { jsValue ⇒ Json.stringify(jsValue) }
 
   override type FixtureParam = ESServer
-  val port = "9250"
+  val port = 9250
 
   override def withFixture(test: OneArgTest) = {
-    val server = new ESServer("test-cluster", port)
+    val server = new ESServer("test-cluster", Some(port))
 
     try {
       server.start()
@@ -50,11 +50,11 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
 
       val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[Unit])] = for {
         rdd ← operation
-        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = port))(rdd)
+        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = Some(port)))(rdd)
       } yield exportOp
 
       val verify = SparkOperation { ctx ⇒
-        ctx.esJsonRDD("estestindex/estesttype", Map("es.port" -> port))
+        ctx.esJsonRDD("estestindex/estesttype", Map("es.port" -> port.toString))
       }
 
       val verifiedResult = for {
@@ -70,8 +70,8 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       mapArray.length shouldBe 5
 
       val verifiedOutput = result._3
-      val verifiedJson = result._3 map {
-        case (_, verifiedOutput) ⇒ JsUtil.unwrapFromJs(Json.parse(verifiedOutput)).asInstanceOf[Map[String, Any]]
+      val verifiedJson = verifiedOutput map {
+        case (_, output) ⇒ JsUtil.unwrapFromJs(Json.parse(output)).asInstanceOf[Map[String, Any]]
       }
 
       verifiedJson.map(_.size).head shouldBe 22
