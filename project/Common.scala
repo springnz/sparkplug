@@ -9,6 +9,8 @@ import scalariform.formatter.preferences._
 
 object Common {
   val repo = "https://nexus.prod.corp/content"
+  val organisationString = "springnz"
+  val scalaVersionString = "2.11.7"
 
   lazy val allResolvers = Seq(
     Resolver.mavenLocal,
@@ -24,8 +26,8 @@ object Common {
 
 
   lazy val commonSettings = Seq(
-    organization := "springnz",
-    scalaVersion := "2.11.7",
+    organization := organisationString,
+    scalaVersion := scalaVersionString,
     scalacOptions := Seq("-Xlint", "-deprecation"),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
     publishTo := {

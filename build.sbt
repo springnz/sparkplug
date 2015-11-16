@@ -2,9 +2,12 @@
 // refer to project/Dependencies.scala for dependency definitions
 import Common._
 import Dependencies._
+import sbt.Keys._
 import xerial.sbt.Pack._
 
 name := "sparkplug"
+organization := organisationString
+scalaVersion := scalaVersionString
 
 releaseVersionBump := sbtrelease.Version.Bump.Bugfix
 
