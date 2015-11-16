@@ -6,7 +6,7 @@ import org.scalatest._
 import play.api.libs.json._
 import springnz.elasticsearch.server.{ ESServer, ESServerParams }
 import springnz.sparkplug.core.SparkOperation
-import springnz.sparkplug.elasticsearch.ESExporter.ESExporterParams
+import springnz.sparkplug.elasticsearch.ESExporter.{ ESExportDetails, ESExporterParams }
 import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.util.{ JsUtil, Logging }
 
@@ -47,7 +47,7 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
         }
       }
 
-      val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[Unit])] = for {
+      val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[ESExportDetails])] = for {
         rdd ← operation
         exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = Some(port)))(rdd)
       } yield exportOp
