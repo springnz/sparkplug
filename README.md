@@ -154,7 +154,8 @@ object OperationFactory {
 
 This pattern is often used for operations that persist data to a database such as Cassandra or to a HDFS file store.
 
-In the example given above, 
+E.g. in the document example given above, 
+
 ```scala
 def saveParsedDoc(RDD[ParserInfo]): SparkOperation[SaveStatus]
 ``` 
