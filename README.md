@@ -26,8 +26,8 @@ sealed trait SparkOperation[+A] {
 `SparkOperation` are typically created using the companion class. Here is the simplest possible example:
 
 ```scala
-val textRDDOperation = SparkOperation[RDD[String]] {
-  ctx ⇒ ctx.makeRDD("There is nothing either good or bad, but thinking makes it so".split(' '))
+val textRDDOperation: SparkOperation[RDD[String]] = SparkOperation {
+  ctx ⇒ ctx.makeRDD("There is nothing either good or bad, but thinking makes it so.".split(' '))
 }
 ```
 
