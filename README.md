@@ -70,7 +70,9 @@ Splitting the process into discrete, separate operations has two main advantages
 2. They can be unit tested in isolation. There are several utilities included in the project that facilitate this. This is covered in the section on testing below.
 3. Operations can be glued together using compact functional code.
 
-Note that this pattern involves decoupling the pipeline definition from the pipeline execution, which enables a great deal of flexibility over how one defines pipelines and executes them.
+Note that this pattern involves decoupling the pipeline definition from the pipeline execution, 
+which enables a great deal of flexibility over how one defines pipelines and executes them.
+It enables cases in which it useful to reverse the order of operations, and in certain cases avoid their execution completely. 
 
 It does lead to the one drawback in that stack dumps are not normally very meaningful. For this reason good logging and error handling is important.
 
@@ -101,6 +103,10 @@ trait DocumentPipeline {
   lazy val statsOperation: SparkOperation[DocumentStats] = parseOperation.map {
     parsedDoc ⇒ calculateStats(parsedDoc)
   }
+
+  lazy val saveParsedDocOperation: SparkOperation[SaveStatus] = parseOperation.flatMap {
+    parsedDoc ⇒ saveParsedDoc(parsedDoc)
+  }
 }
 ```
 
@@ -120,6 +126,120 @@ trait ProdDocPipeline extends DocumentPipeline {
   override lazy val dataSource = CassandraRDDFetcher.selectAll[InputType](keySpace, table)
 }
 ```
+
+### Functional Patterns
+
+`SparkOperation[A]` is a monad. As such all the monad patterns are available. 
+The monad implementation is provided by [scalaz](https://github.com/scalaz/scalaz). 
+
+To take advantage of some of the operations, certain imports from scalaz are necessary. 
+Implementations `map` and `flatMap` are provided, so no imports are necessary for these, and for comprehensions.
+
+Here are some examples of functional pipeline patterns:
+
+#### Map
+
+This is the most commonly used pattern, and examples of its usage is given in the pipeline above. 
+Map is best suited to constructing a single-step extension to the pipeline. 
+
+#### FlatMap
+
+Many `SparkOperation`s are constructed via a a function of the following form:
+
+```scala
+object OperationFactory {
+  def createOperation(rdd: RDD[A]): SparkOperation[B] = ???
+}
+```
+
+This pattern is often used for operations that persist data to a database such as Cassandra or to a HDFS file store.
+
+In the example given above, 
+```scala
+def saveParsedDoc(RDD[ParserInfo]): SparkOperation[SaveStatus]
+``` 
+
+is a function that generates a `SparkOperation` from a `RDD`. To plug it into the pipeline, it must be flatmapped.
+
+`map` is generally useful for connecting a single process to the end of a pipeline. 
+`flatMap` is more powerful. It can connect two entire pipelines.
+
+#### Joins and pairs / tuples
+
+FlatMap can be used to do joins. However, applicative functors are the functional abstraction most naturally suited to this operation.
+
+Here is an example of a join operation (with `A`, `B` and `C` obviously being the appropriately compatible types):
+
+```scala
+
+def joinRDDs(rddA: RDD[A], rddB: RDD[B]): RDD[C] = {
+  ...
+  rddA.join(rddB)
+}
+```
+
+Here is how they can be applied to create a  `SparkOperation` representing this join:
+
+```scala
+import scalaz.syntax.bind._
+
+def operationC: SparkOperation[RDD[C]] = (operationA |@| operationB)(joinRDDs)
+```
+
+The result of this is a new operation that when executed, will perform the following:
+* Execute `operationA` and `operationB` to produce an `RDD[A]` and an `RDD[B]` respectively.
+* Perform the join to produce an `operationC` or type `RDD[C]`.
+
+Note that it is necessary to `import scalaz.syntax.bind._` to bring the `|@|` operator (or it's unicode variant, `⊛`) into scope.
+
+#### Sequences and Traversables
+
+Sequence operators are a natural generalisation of an applicative, which takes a pair of Spark operations and produces a Spark operation of pairs.
+A sequence operator takes a `List` of Spark operations and generates a single Spark operation of `List`s. Traversable operations are a further 
+generalisation of this to allow an extra function in between, 
+and can be applied across a more general class of data structures than just `List`s.
+ 
+An example of this is the following: 
+
+Suppose we have a `SparkOperation` that processes a single days data, and we wish to run the same operation on a month of data.
+
+```scala
+def daysOperation(date: Date): SparkOperation[A]  = ???
+```
+
+The following code generates a list of operations, each of which processes data for a single date:
+
+```scala
+val listOfOperations: List[SparkOperation[A]] = for (day <- daysInMonthList) yield daysOperation(day)
+```
+
+This can be transformed as:
+
+```scala
+import scalaz.std.list.listInstance
+
+val combinedOperation: SparkOperation[List[A]] = SparkOperation.monad.sequence(jobsList)
+
+```
+
+The syntax is not as cute, but it is still one line of code to create a `SparkOperation` that generates a list of `A`s. 
+
+No more ugly looping code.
+
+#### Anti-patterns
+
+There aren't too many ways of going wrong, but the one pattern to avoid is performing operations on `RDD`s when they could be performed on `SparkOperation`s.
+
+As general guidelines:
+
+* Use the `SparkOperation { ctx => ??? }` generally for the first step of the pipeline, or if you specifically need a `SparkContext`.
+* If you end up with a `SparkOperation[RDD[A]]` defined as  `SparkOperation { _ => ??? }` (where you don't need the `SparkContext`), 
+there is probably a better way of doing it involving `map`, `flatMap` etc.
+* Create the (non private parts of the) pipeline solely of `SparkOperation`s - 
+note that `SparkOperation`s can easily be overridden or intercepted for testing purposes (see below).
+* Aim for the right granularity of intermediate `SparkOperation`s in the pipeline. 
+They should be big enough to do something non trivial, but small enough to allow for granular unit testing.
+
 
 ### Testing
 
@@ -169,7 +289,7 @@ trait TestDocPipeline extends ProdDocPipeline {
 }
 ```
 
-This makes the "ParsedDocument" test data available for consumption in any other test case. This can be done as follows:
+This makes the `"ParsedDocument"` test data available for consumption in any other test case. This can be done as follows:
 
 #### Retrieving test data
 
