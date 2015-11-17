@@ -127,7 +127,7 @@ trait ProdDocPipeline extends DocumentPipeline {
 }
 ```
 
-### Functional Patterns
+### Functional pipeline composition patterns
 
 `SparkOperation[A]` is a monad. As such all the monad patterns are available. 
 The monad implementation is provided by [scalaz](https://github.com/scalaz/scalaz). 
