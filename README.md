@@ -4,16 +4,18 @@
 
 *Please note that this project is early stage work in progress, and will be subject to some breaking changes and refactoring.*
 
-Apache Spark is great, but not everything you need to use it successfully in production environments comes out the box.
+Apache Spark is awesome, it lets you define distributed data transformation and analysis with elegant functional Scala code. 
 
-This project aims to bridge the gap. In particular, it addresses two specific requirements.
+Unfortunately the application code that ends up gluing these processes together can end up a bit of a mess, and some thought needs to go into how to make it testable. The mechanism for cluster execution that comes out the box is somewhat inefficient and clunky.
 
-1. Creating data processing pipelines that are easy to reuse and test in isolation.
+This project aims to bridge the gap. In particular, it addresses these two specific requirements:
+
+1. Creating data processing pipelines, with elegant Scala code, that are easy to reuse and test in isolation.
 2. Providing a lightweight mechanism for launching and executing Spark processes on a cluster.
 
 These two requirements are quite different. Indeed it is possible to use Sparkplug for either of them without taking advantage of the other. For example it is possible to create composable data pipelines as described below, then execute them directly, or using any other Spark cluster execution or job manager of your choice.
 
-## Data processing pipelines
+## Functional data processing pipelines
 
 The key abstraction here is the `SparkOperation` monad.
 
@@ -23,7 +25,7 @@ sealed trait SparkOperation[+A] {
 }
 ```
 
-`SparkOperation` are typically created using the companion class. Here is the simplest possible example:
+`SparkOperation` are typically created using the companion class. Here is a simple example:
 
 ```scala
 val textRDDOperation: SparkOperation[RDD[String]] = SparkOperation {
@@ -78,9 +80,9 @@ It does lead to the one drawback in that stack dumps are not normally very meani
 
 ### Wiring together SparkOperation components
 
-A common use case requires creating a pipeline. The fist step in the pipeline is the data input step. Then there are operations that process this input data.
+As a common use case, consider a data transformation pipeline. The fist step in the pipeline is the data input step. The subsequent steps involve processing this data, or running algorithms on it.
 
-As a simple example, consider a pipeline processing a corpus of documents:
+For example, consider a pipeline processing a corpus of documents:
 
 1. The first step processes input data into a `RDD` of `Document`s.
 2. The next step is to transform `Document`s into `ParserInfo`s.
@@ -133,7 +135,7 @@ trait ProdDocPipeline extends DocumentPipeline {
 The monad implementation is provided by [scalaz](https://github.com/scalaz/scalaz). 
 
 To take advantage of some of the operations, certain imports from scalaz are necessary. 
-Implementations `map` and `flatMap` are provided, so no imports are necessary for these, and for comprehensions.
+Implementations of `map` and `flatMap` are provided, so no imports for these, and for comprehensions, are necessary.
 
 Here are some examples of functional pipeline patterns:
 
@@ -144,7 +146,7 @@ Map is best suited to constructing a single-step extension to the pipeline.
 
 #### FlatMap
 
-Many `SparkOperation`s are constructed via a a function of the following form:
+Many `SparkOperation`s are constructed via a function of the following form:
 
 ```scala
 object OperationFactory {
