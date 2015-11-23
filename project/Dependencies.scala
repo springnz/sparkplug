@@ -57,6 +57,12 @@ object Dependencies {
   val utilLib = "springnz" %% "util-lib" % utilLibVersion
   val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
 
+  // for spark-orientdb-connector
+  val orientDBMigrations = "springnz" %% "orientdb-migrations" % "2.6.0"
+  val orientGraphDB = "com.orientechnologies" % "orientdb-graphdb" % "2.1.5"
+  val sparkGraphx = "org.apache.spark" %% "spark-graphx" % sparkVersion % Provided
+  val tinkerpop = "com.tinkerpop.blueprints" % "blueprints-core" % "2.6.0"
+
   // Share test
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % Test
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % Test
@@ -66,6 +72,8 @@ object Dependencies {
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
+  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, orientGraphDB, sparkGraphx, tinkerpop)
+
   val sharedCompileDependencies = Seq(slf4jApi, playJson, betterFiles, utilLib)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
   val sharedDependencies = sharedCompileDependencies ++ sharedTestDependencies
@@ -74,6 +82,7 @@ object Dependencies {
 
   val sparkExtraLibDependencies = sparkCoreLibDependencies ++
     sparkDataDependencies ++
+    sparkOrientConnectorDependencies ++
     logBackTestDependencies ++
     sharedDependencies
 
