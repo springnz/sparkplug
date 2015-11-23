@@ -1,4 +1,4 @@
-//TODO: add unite tests in this project
+//TODO: add unit tests in this project
 
 package springnz.sparkplug.data
 

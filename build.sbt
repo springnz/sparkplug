@@ -17,6 +17,7 @@ lazy val sparkPlugCore: Project = CreateProject("sparkplug-core", sparkCoreLibDe
 
 lazy val sparkPlugExtras = CreateProject("sparkplug-extras", sparkExtraLibDependencies)
   .dependsOn(dep(sparkPlugCore))
+  .settings(fork := true) // required for OrientDB tests
 
 lazy val sparkPlugExamples = CreateProject("sparkplug-examples", sparkExampleLibDependencies)
   .dependsOn(dep(sparkPlugCore), dep(sparkPlugExtras))
