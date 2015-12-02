@@ -1,12 +1,8 @@
 package springnz.sparkplug.testkit
 
 import better.files._
-import com.datastax.spark.connector.rdd.ValidRDDType
-import com.datastax.spark.connector.rdd.reader.RowReaderFactory
-import springnz.util.Logging
 import org.apache.spark.rdd.RDD
-
-import scala.reflect.ClassTag
+import springnz.util.Logging
 
 object RDDPersister extends Logging {
 
@@ -20,7 +16,7 @@ object RDDPersister extends Logging {
   }
 
   def getPath(projectName: String, rddName: String): File =
-    "." / projectName / "src" / "test" / "resources" / "testdata" / rddName
+    projectName / "src" / "test" / "resources" / "testdata" / rddName
 
   def checkIfPersistedRDDExists(projectName: String, rddName: String) =
     getPath(projectName, rddName).exists

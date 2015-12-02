@@ -24,7 +24,6 @@ object Common {
     "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/" // for wabisabi
   )
 
-
   lazy val commonSettings = Seq(
     organization := organisationString,
     scalaVersion := scalaVersionString,
@@ -43,7 +42,24 @@ object Common {
     runMain in Compile <<= Defaults.runMainTask(fullClasspath in Compile, runner in (Compile, run)),
     run in Test <<= Defaults.runTask(fullClasspath in Test, mainClass in (Test, run), runner in (Test, run)),
     runMain in Test <<= Defaults.runMainTask(fullClasspath in Test, runner in (Test, run)),
-    ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) })
+    ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) },
+    testGrouping in Test := {
+      val original: Seq[Tests.Group] = (testGrouping in Test).value
+
+      original.map { group ⇒
+        val forkOptions = ForkOptions(
+          bootJars = Nil,
+          javaHome = javaHome.value,
+          connectInput = connectInput.value,
+          outputStrategy = outputStrategy.value,
+          runJVMOptions = javaOptions.value,
+          workingDirectory = Some(new File(System.getProperty("user.dir"))),
+          envVars = envVars.value
+        )
+
+        group.copy(runPolicy = Tests.SubProcess(forkOptions))
+      }
+    })
 
   lazy val scalariformPreferences = ScalariformKeys.preferences := ScalariformKeys.preferences.value
     .setPreference(AlignParameters, false)
