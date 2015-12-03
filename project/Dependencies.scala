@@ -6,7 +6,7 @@ object Dependencies {
   val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
   val elasticsearchVersion = "2.0.0"
-  val utilLibVersion = "2.6.0"
+  val utilLibVersion = "2.7.0"
   val elasticsearchLibVersion = "0.1.1-SNAPSHOT"
 
   val cassandraConnectorVersionMap = Map(
