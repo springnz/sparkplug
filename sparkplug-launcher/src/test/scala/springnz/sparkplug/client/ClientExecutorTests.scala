@@ -5,6 +5,7 @@ import springnz.util.Logging
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
+import scala.util.Try
 
 trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
 
@@ -68,6 +69,15 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
         result ⇒ result shouldBe ((2, 2))
       }
     }
+
+    "Handle immediate timeout" in {
+      val future = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      Try {
+        Await.result(future, 0 seconds)
+      }
+
+    }
+
   }
 }
 

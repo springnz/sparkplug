@@ -67,7 +67,7 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       self ! PoisonPill
 
     case ServerReady ⇒
-      val broker = sender
+      val broker = sender()
       context.become(waitForRequests(broker, 0, Set.empty[Int]))
       log.info(s"Coordinator received a ServerReady message from broker: ${broker.path.toString}")
 
@@ -76,6 +76,12 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
         readyPromise.get.complete(Success(self))
       else
         context.parent ! ServerReady
+
+      // death watch on the server
+      context.watch(broker)
+      // Tell the Server the client is ready (so the server can DeathWatch on the client)
+      log.info(s"Coordinator tells client it's ready")
+      broker ! ClientReady
 
       queuedList.foreach {
         case (originalSender, request) ⇒
@@ -121,6 +127,11 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       log.info(s"Jobs left to complete: $jobsRemaining")
       context become waitForRequests(broker, jobCounter, jobsRemaining)
 
+    case Terminated(_) ⇒
+      log.info("Server terminated, crashed or timed out. Shutting down the client coordination.")
+      context.become(notReceivingRequests)
+      self ! PoisonPill
+
   }
 
   def notReceivingRequests(): Receive = {
@@ -133,5 +144,6 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
     context.become(notReceivingRequests)
     self ! PoisonPill
   }
+
 }
 

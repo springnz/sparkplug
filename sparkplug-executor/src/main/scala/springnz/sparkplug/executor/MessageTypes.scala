@@ -5,6 +5,8 @@ import springnz.sparkplug.executor.MessageTypes.JobRequest
 import springnz.sparkplug.core.SparkOperation
 
 object MessageTypes {
+  case object ClientReady
+
   case object ServerReady
   case object ShutDown
 
