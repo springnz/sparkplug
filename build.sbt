@@ -11,6 +11,9 @@ scalaVersion := scalaVersionString
 
 releaseVersionBump := sbtrelease.Version.Bump.Bugfix
 
+// run the tests in series
+concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+
 def dep(project: Project) = project % "test->test;compile->compile"
 
 lazy val sparkPlugCore: Project = CreateProject("sparkplug-core", sparkCoreLibDependencies)

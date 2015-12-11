@@ -1,12 +1,10 @@
 package springnz.sparkplug.executor
 
 import akka.actor._
-import better.files._
 import com.typesafe.config.ConfigFactory
-
+import org.joda.time.DateTime
 import springnz.sparkplug.core._
 import springnz.util.Logging
-import org.joda.time.DateTime
 
 import scala.util.{ Properties, Try }
 
@@ -28,16 +26,15 @@ object ExecutorService extends Logging {
 
     log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${DateTime.now()}")
 
-    val executorService = new ExecutorService(appName)
     val executorConfig = ConfigFactory.load().getConfig(defaultConfigSectionName)
     val system = ActorSystem(actorSystemName, executorConfig)
 
+    val executorService = new ExecutorService(appName)
     executorService.start(system, sparkClientPath)
   }
 }
 
-class ExecutorService(appName: String) extends LongLivedExecutor with Logging {
-  import Constants._
+class ExecutorService(appName: String, brokerName: String = Constants.brokerActorName) extends LongLivedExecutor with Logging {
 
   override val configurer: Configurer = new LocalConfigurer(appName, Properties.envOrNone("SPARK_MASTER"))
 
@@ -51,7 +48,7 @@ class ExecutorService(appName: String) extends LongLivedExecutor with Logging {
       }
 
       log.info("Creating requestBroker for ExecutorService.")
-      system.actorOf(Props(new RequestBroker(sparkClientPath, postStopAction)), name = brokerActorName)
+      system.actorOf(Props(new RequestBroker(sparkClientPath, postStopAction)), name = brokerName)
     }
 
     log.info("Executing container operation (everything happens inside this method).")

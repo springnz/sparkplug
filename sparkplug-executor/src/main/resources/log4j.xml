@@ -9,7 +9,7 @@
         </layout>
     </appender>
 
-    <logger name="springnz.sparkplug">
+    <logger name="springnz">
         <level value="INFO"/>
     </logger>
 

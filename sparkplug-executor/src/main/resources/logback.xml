@@ -22,7 +22,7 @@
         </encoder>
     </appender>
 
-    <logger name="springnz.sparkplug" level="INFO"/>
+    <logger name="springnz" level="INFO"/>
 
     <root level="WARN">
         <appender-ref ref="CONSOLE" />

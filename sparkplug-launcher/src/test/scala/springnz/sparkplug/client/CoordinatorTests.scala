@@ -56,3 +56,35 @@ class CoordinatorTests(_system: ActorSystem)
   }
 
 }
+
+class CoordinatorDestructionTests(_system: ActorSystem)
+    extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
+
+  def this() = this(ActorSystem(Constants.actorSystemName, ConfigFactory.load().getConfig(Constants.defaultConfigSectionName)))
+
+  var coordinator: TestActorRef[Coordinator] = null
+
+  "client coordinator" should {
+
+    "successfuly execute a job request" in {
+      val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+      coordinator ! request
+      val underlying = coordinator.underlyingActor
+      expectMsgType[JobSuccess](20 second)
+    }
+
+    // TODO: work out a way to kill off the broker to test DeathWatch
+  }
+
+  override def beforeAll {
+    coordinator = TestActorRef(new Coordinator, "TestCoordinator")
+    coordinator.underlyingActor.receive
+  }
+
+  override def afterAll {
+    system.actorSelection(s"/user/TestCoordinator") ! ShutDown
+    TestKit.shutdownActorSystem(system)
+    Thread.sleep(1000)
+  }
+
+}

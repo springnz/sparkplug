@@ -4,7 +4,7 @@ import akka.actor.TypedActor.{ PreStart, PostStop }
 import akka.actor._
 import better.files._
 import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
-import springnz.sparkplug.executor.MessageTypes.{ ShutDown, ServerReady, JobRequest }
+import springnz.sparkplug.executor.MessageTypes.{ ClientReady, ShutDown, ServerReady, JobRequest }
 import org.apache.spark.SparkContext
 import org.joda.time.DateTime
 
@@ -57,6 +57,15 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
     case ShutDown ⇒
       log.info(s"Shutting down...")
       context.system.shutdown()
+
+    case ClientReady ⇒
+      log.info("Received ClientReady message from Client. Deathwatching on client.")
+      context.watch(sender)
+
+    case Terminated(_) ⇒
+      log.info("Client was terminated (or timed out). Sending the shutdown signal.")
+      self ! ShutDown
+
   }
 }
 
