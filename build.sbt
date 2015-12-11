@@ -11,6 +11,7 @@ scalaVersion := scalaVersionString
 
 releaseVersionBump := sbtrelease.Version.Bump.Bugfix
 
+// run the tests in series
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 def dep(project: Project) = project % "test->test;compile->compile"

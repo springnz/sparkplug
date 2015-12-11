@@ -71,7 +71,7 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
     }
 
     "Handle immediate timeout" in {
-      val future = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val future = executor.execute[Any]("springnz.sparkplug.examples.WaitPlugin", None)
       Try {
         Await.result(future, 0 seconds)
       }

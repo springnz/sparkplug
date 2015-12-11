@@ -4,15 +4,11 @@ import akka.actor._
 import akka.testkit.{ ImplicitSender, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
-import springnz.sparkplug.core.{ SparkOperation, SparkPlugin, Configurer, LocalConfigurer }
+import springnz.sparkplug.core.{ Configurer, LocalConfigurer }
 import springnz.sparkplug.executor.MessageTypes.{ ClientReady, JobRequest, JobSuccess, ServerReady }
 import springnz.sparkplug.executor.{ Constants, ExecutorService }
 
 import scala.concurrent.duration._
-
-class WaitPlugin extends SparkPlugin {
-  override def apply(input: Any): SparkOperation[Unit] = SparkOperation { _ ⇒ Thread.sleep(2000) }
-}
 
 class ExecutorServiceTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll {
@@ -37,7 +33,7 @@ class ExecutorServiceTests(_system: ActorSystem)
     expectMsg(1 seconds, ServerReady)
     val requestBroker = system.actorSelection(s"/user/testBroker3")
     // give it something to do for a while
-    val request = JobRequest("springnz.sparkplug.WaitPlugin", None)
+    val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
     requestBroker ! request
     expectMsgType[JobSuccess](3 second)
   }
@@ -46,7 +42,7 @@ class ExecutorServiceTests(_system: ActorSystem)
     expectMsg(1 seconds, ServerReady)
     val requestBroker = system.actorSelection(s"/user/testBroker4")
     // give it something to do for a while
-    val request = JobRequest("springnz.sparkplug.WaitPlugin", None)
+    val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
     requestBroker ! request
     clientActor ! PoisonPill
     expectNoMsg(3 second)
@@ -66,9 +62,6 @@ class ExecutorServiceTests(_system: ActorSystem)
         case ServerReady ⇒
           probe forward ServerReady
           sender ! ClientReady
-
-        case Terminated(actor) ⇒
-          probe ! ServerTerminated
       }
     }), clientName)
   }
