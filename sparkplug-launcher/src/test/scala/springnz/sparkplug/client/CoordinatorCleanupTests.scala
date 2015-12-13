@@ -20,7 +20,6 @@ class CoordinatorCleanupTests(_system: ActorSystem)
     "successfuly execute a job request" in {
       val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
       coordinator ! request
-      val underlying = coordinator.underlyingActor
       expectMsgType[JobSuccess](20 second)
     }
 
