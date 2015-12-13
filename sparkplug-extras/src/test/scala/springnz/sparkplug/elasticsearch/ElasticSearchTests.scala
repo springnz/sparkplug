@@ -8,7 +8,7 @@ import springnz.elasticsearch.server.{ ESServer, ESServerParams }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.{ ESExportDetails, ESExporterParams }
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.util.{ JsUtil, Logging }
+import springnz.util.{ Logging, PlayJsonUtil }
 
 import scala.util.{ Success, Try }
 
@@ -41,8 +41,9 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       val operation = SparkOperation { ctx ⇒
         val rdd = ctx.parallelize(testDataArray)
         rdd.map { jsonString ⇒
+          import PlayJsonUtil._
           val parsedJson: JsValue = Json.parse(jsonString)
-          val unWrappedJson = JsUtil.unwrapFromJs(parsedJson)
+          val unWrappedJson = parsedJson.toMap()
           unWrappedJson.asInstanceOf[Map[String, Any]]
         }
       }
@@ -69,8 +70,9 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       mapArray.length shouldBe 5
 
       val verifiedOutput = result._3
+      import PlayJsonUtil._
       val verifiedJson = verifiedOutput map {
-        case (_, output) ⇒ JsUtil.unwrapFromJs(Json.parse(output)).asInstanceOf[Map[String, Any]]
+        case (_, output) ⇒ Json.parse(output).toMap().asInstanceOf[Map[String, Any]]
       }
 
       verifiedJson.map(_.size).head shouldBe 22

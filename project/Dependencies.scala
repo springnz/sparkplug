@@ -8,6 +8,7 @@ object Dependencies {
   val elasticsearchVersion = "2.0.0"
   val utilLibVersion = "2.8.0"
   val elasticsearchLibVersion = "0.1.1"
+  val orientDBMigrationsVersion = "2.7.0"
 
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-M2",
@@ -58,7 +59,7 @@ object Dependencies {
   val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
 
   // for spark-orientdb-connector
-  val orientDBMigrations = "springnz" %% "orientdb-migrations" % "2.6.0"
+  val orientDBMigrations = "springnz" %% "orientdb-migrations" % orientDBMigrationsVersion
   val orientGraphDB = "com.orientechnologies" % "orientdb-graphdb" % "2.1.5"
   val sparkGraphx = "org.apache.spark" %% "spark-graphx" % sparkVersion % Provided
   val tinkerpop = "com.tinkerpop.blueprints" % "blueprints-core" % "2.6.0"
