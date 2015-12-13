@@ -1,10 +1,10 @@
 package springnz.sparkplug.client
 
 import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import akka.testkit.{ ImplicitSender, TestActorRef, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
-import springnz.sparkplug.executor.MessageTypes.{JobRequest, JobSuccess, ShutDown}
+import springnz.sparkplug.executor.MessageTypes.{ JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.duration._
 
@@ -29,7 +29,6 @@ class CoordinatorCleanupTests(_system: ActorSystem)
 
   override def beforeAll {
     coordinator = TestActorRef(new Coordinator, "TestCoordinator")
-    coordinator.underlyingActor.receive
   }
 
   override def afterAll {
