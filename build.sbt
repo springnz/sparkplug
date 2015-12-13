@@ -2,38 +2,16 @@
 // refer to project/Dependencies.scala for dependency definitions
 import Common._
 import Dependencies._
+import Release._
 import sbt.Keys._
 import xerial.sbt.Pack._
-import sbtrelease.ReleaseStateTransformations._
 
 name := "sparkplug"
 organization := organisationString
 scalaVersion := scalaVersionString
 
 releaseVersionBump := sbtrelease.Version.Bump.Bugfix
-
-lazy val runPack : ReleaseStep = ReleaseStep(
-  action = { st: State =>
-    val extracted = Project.extract(st)
-    val ref = extracted.get(thisProjectRef)
-    extracted.runAggregated(pack in Global in ref, st)
-  }
-)
-
-releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runPack,
-      runTest,
-      setReleaseVersion,
-      commitReleaseVersion,
-      tagRelease,
-      publishArtifacts,
-      setNextVersion,
-      commitNextVersion,
-      pushChanges
-    )
+releaseProcess := customReleaseProcess
 
 // run the tests in series
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
