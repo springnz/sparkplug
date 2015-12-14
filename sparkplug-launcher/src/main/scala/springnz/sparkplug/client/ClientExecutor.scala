@@ -20,22 +20,21 @@ object ClientExecutor extends Logging {
   import Coordinator._
   import Pimpers._
 
+  case class ClientExecutorParams(config: Config = defaultConfig(), jarPath: Option[String] = None)
+
   def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
 
-  def apply[A](pluginClass: String, data: Option[Any], config: Config = defaultConfig())(implicit ec: ExecutionContext): Future[A] = {
-    val executor = create(config)
+  def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
+    val executor = create(params)
     executor
       .execute(pluginClass, data)
-      .andThen {
-        case _ ⇒
-          executor.shutDown()
-      }
+      .andThen { case _ ⇒ executor.shutDown() }
   }
 
-  def create(config: Config = defaultConfig()): ClientExecutor = {
+  def create(params: ClientExecutorParams = ClientExecutorParams()): ClientExecutor = {
 
     val actorSystem: ActorSystem = {
-      Try { ActorSystem(actorSystemName, config) }
+      Try { ActorSystem(actorSystemName, params.config) }
         .withErrorLog("Unable to create ActorSystem")
         .get
     }
@@ -46,7 +45,7 @@ object ClientExecutor extends Logging {
     // This actor then creates the Coordinator
     val coordinatorFuture: Future[ActorRef] = {
       val readyPromise = Promise[ActorRef]()
-      actorSystem.actorOf(Coordinator.props(Some(readyPromise)), name = coordinatorActorName)
+      actorSystem.actorOf(Coordinator.props(Some(readyPromise), params.config, params.jarPath), name = coordinatorActorName)
       readyPromise.future
     }
 
