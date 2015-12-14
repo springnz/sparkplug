@@ -45,7 +45,7 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]], config: Config, jarPa
       val usedJarPathSuffix = jarPath.getOrElse(defaultJarPath)
       val usedJarPath = if (usedJarPathSuffix.startsWith("/")) root / usedJarPathSuffix else userDir / usedJarPathSuffix
 
-      Launcher.launch(clientAkkaAddress, usedJarPath, mainJar, mainClass).get
+      Launcher.launch(clientAkkaAddress, usedJarPath, mainJarPattern, mainClass).get
     }
 
     launchTry match {

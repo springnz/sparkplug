@@ -34,9 +34,8 @@ object Launcher extends Logging {
     process.waitFor()
   }
 
-  def launch(clientAkkaAddress: String, jarPath: File, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
+  def launch(clientAkkaAddress: String, jarPath: File, mainJarPattern: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
-    val fullMainJar = (jarPath / mainJar).fullPath
     val fullExtraJarFolder = jarPath.fullPath
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
@@ -52,8 +51,10 @@ object Launcher extends Logging {
 
     import BuilderOps._
 
+    val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.fullPath }
+
     val launcher = (new SparkLauncher)
-      .setAppResource(fullMainJar)
+      .setIfSome[String](mainJar, (l, mj) ⇒ l.setAppResource(mj))
       .setMainClass(mainClass)
       .setAppName(appName)
       .setMaster(sparkMaster)
