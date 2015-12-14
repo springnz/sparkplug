@@ -2,6 +2,7 @@ package springnz.sparkplug.client
 
 import akka.actor.TypedActor.PreStart
 import akka.actor._
+import better.files._
 import com.typesafe.config.{ Config, ConfigFactory }
 import springnz.sparkplug.client.Constants._
 import springnz.sparkplug.client.Coordinator.JobRequestWithPromise
@@ -16,7 +17,9 @@ object Coordinator {
   case class JobCompleteIndex(jobIndex: Int)
   private case class LauncherError(reason: Throwable)
 
-  def props(readyPromise: Promise[ActorRef]) = Props(new Coordinator(Some(readyPromise)))
+  def props(readyPromise: Option[Promise[ActorRef]],
+    config: Config = Coordinator.defaultConfig,
+    jarPath: Option[String] = None) = Props(new Coordinator(readyPromise, config, jarPath))
 
   def defaultConfig: Config = {
     val config = ConfigFactory.load()
@@ -24,7 +27,7 @@ object Coordinator {
   }
 }
 
-class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config = Coordinator.defaultConfig) extends Actor with PreStart with Logging {
+class Coordinator(readyPromise: Option[Promise[ActorRef]], config: Config, jarPath: Option[String]) extends Actor with PreStart with Logging {
   import Coordinator._
   import Constants._
 
@@ -37,7 +40,12 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]] = None, config: Config
       val clientPath = context.self.path.toString
       val localPath = clientPath.substring(clientPath.indexOf("/user/"))
       val clientAkkaAddress = s"akka.tcp://$systemName@$hostName:$port$localPath"
-      Launcher.launch(clientAkkaAddress, jarPath, mainJar, mainClass).get
+
+      def userDir: File = root / System.getProperty("user.dir")
+      val usedJarPathSuffix = jarPath.getOrElse(defaultJarPath)
+      val usedJarPath = if (usedJarPathSuffix.startsWith("/")) root / usedJarPathSuffix else userDir / usedJarPathSuffix
+
+      Launcher.launch(clientAkkaAddress, usedJarPath, mainJar, mainClass).get
     }
 
     launchTry match {

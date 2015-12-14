@@ -46,7 +46,7 @@ object ClientExecutor extends Logging {
     // This actor then creates the Coordinator
     val coordinatorFuture: Future[ActorRef] = {
       val readyPromise = Promise[ActorRef]()
-      actorSystem.actorOf(Coordinator.props(readyPromise), name = coordinatorActorName)
+      actorSystem.actorOf(Coordinator.props(Some(readyPromise)), name = coordinatorActorName)
       readyPromise.future
     }
 

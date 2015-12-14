@@ -4,7 +4,7 @@ import java.net.InetAddress
 
 import better.files._
 import com.typesafe.config.ConfigFactory
-import springnz.util.{ Pimpers, Logging }
+import springnz.util.{ BuilderOps, Pimpers, Logging }
 import org.apache.spark.launcher.SparkLauncher
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,17 +34,10 @@ object Launcher extends Logging {
     process.waitFor()
   }
 
-  implicit class LauncherSetter(launcher: SparkLauncher) {
-    def setIfDefined(setFunc: (SparkLauncher, String) ⇒ SparkLauncher)(option: Option[String]): SparkLauncher =
-      if (option.isDefined) setFunc(launcher, option.get) else launcher
-  }
+  def launch(clientAkkaAddress: String, jarPath: File, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
-  def launch(clientAkkaAddress: String, jarPath: String, mainJar: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
-
-    val userDir = root / System.getProperty("user.dir")
-    val fullMainJar = (userDir / jarPath / mainJar).fullPath
-    val extraJarPath = userDir / jarPath
-    val fullExtraJarFolder = extraJarPath.fullPath
+    val fullMainJar = (jarPath / mainJar).fullPath
+    val fullExtraJarFolder = jarPath.fullPath
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
@@ -57,20 +50,23 @@ object Launcher extends Logging {
 
     val appName = mainClass.split('.').last
 
+    import BuilderOps._
+
     val launcher = (new SparkLauncher)
       .setAppResource(fullMainJar)
       .setMainClass(mainClass)
       .setAppName(appName)
       .setMaster(sparkMaster)
-      .setIfDefined(_.setSparkHome(_))(sparkHome)
+      .setIfSome[String](sparkHome, (l, sh) ⇒ l.setSparkHome(sh))
       .addAppArgs("SparkPlugExecutor", clientAkkaAddress)
+      .setConf("spark.app.id", appName)
       .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
       .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))
       .setConf(SparkLauncher.DRIVER_MEMORY, config.getString("spark.driver.memory"))
       .setDeployMode(config.getString("spark.deploymode"))
     //      .addSparkArgs(sparkArgs) TODO: enable this functionality (need Spark 1.5 for this)
 
-    val extraJarFiles = extraJarPath.glob("**/*.jar").collect { case f ⇒ f.fullPath }.filterNot(_.contains("/akka-"))
+    val extraJarFiles = jarPath.glob("**/*.jar").collect { case f ⇒ f.fullPath }.filterNot(_.contains("/akka-"))
 
     val launcherWithJars =
       if (sendJars)
