@@ -31,6 +31,7 @@ class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Loggi
       val result = operation.run(sparkContext)
       log.info(s"Job '$factoryName' finished.")
 
+      // TODO: do something about the SparkListener (not sure what)
       val listener = new SparkListener {}
       sparkContext.addSparkListener(listener)
 
@@ -49,7 +50,9 @@ class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Loggi
   }
 
   def receive = {
-    case RoutedRequest(job, originator: ActorRef) ⇒ executeJob(job, originator)
+    case RoutedRequest(job, originator: ActorRef) ⇒
+      log.info(s"JobProcessor ${self.path.toString} routed request to process job ${job}")
+      executeJob(job, originator)
   }
 }
 

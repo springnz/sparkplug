@@ -5,6 +5,6 @@ object Constants {
   val actorSystemName = "sparkPlugClientSystem"
   val coordinatorActorName = "Coordinator"
   val defaultJarPath = "target/pack/lib"
-  val mainJar = s"sparkplug-executor_2.11-0.2.6-SNAPSHOT.jar"
+  val mainJarPattern = "**/sparkplug-executor*"
   val mainClass = "springnz.sparkplug.executor.ExecutorService"
 }
