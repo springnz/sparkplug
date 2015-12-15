@@ -30,6 +30,6 @@ object SparkOperation {
 }
 
 trait SparkPlugin {
-  def apply(input: Any): SparkOperation[Any]
+  def apply(input: Option[Any]): SparkOperation[Any]
 }
 

@@ -1,12 +1,11 @@
 package springnz.sparkplug.executor
 
-import akka.actor.TypedActor.{ PreStart, PostStop }
+import akka.actor.TypedActor.{ PostStop, PreStart }
 import akka.actor._
-import better.files._
-import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
-import springnz.sparkplug.executor.MessageTypes.{ ClientReady, ShutDown, ServerReady, JobRequest }
 import org.apache.spark.SparkContext
-import org.joda.time.DateTime
+import springnz.sparkplug.core.SparkPlugException
+import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
+import springnz.sparkplug.executor.MessageTypes._
 
 import scala.util.Try
 
@@ -45,13 +44,16 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
     postStopAction
   }
 
-  def receive = receiveJobRequests(0)
+  type JobRequestInfo = (ActorRef, JobRequest)
 
-  def receiveJobRequests(jobCount: Int): Receive = {
+  def receive = receiveJobRequests(0, None, Map.empty[String, JobRequestInfo])
+
+  def receiveJobRequests(jobCount: Int, clientRef: Option[ActorRef], processorMap: Map[String, JobRequestInfo]): Receive = {
     case job: JobRequest ⇒
       log.info(s"Creating new jobProcessor for '${job.factoryClassName}'.")
       val processor = context.actorOf(JobProcessor.props, s"jobProcessor-$jobCount")
-      context.become(receiveJobRequests(jobCount + 1))
+      context.become(receiveJobRequests(jobCount + 1, clientRef, processorMap.updated(processor.path.toString, (sender, job))))
+      context.watch(processor)
       processor ! RoutedRequest(job, sender)
 
     case ShutDown ⇒
@@ -60,12 +62,22 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
 
     case ClientReady ⇒
       log.info("Received ClientReady message from Client. Deathwatching on client.")
+      context.become(receiveJobRequests(jobCount, Some(sender), processorMap))
       context.watch(sender)
 
-    case Terminated(_) ⇒
-      log.info("Client was terminated (or timed out). Sending the shutdown signal.")
-      self ! ShutDown
-
+    case Terminated(terminatedRef) ⇒
+      clientRef.foreach { clientRefInner ⇒
+        if (terminatedRef.path.toString == clientRefInner.path.toString) {
+          log.info("Client was terminated (or timed out). Sending the shutdown signal.")
+          self ! ShutDown
+        }
+      }
+      processorMap.get(terminatedRef.path.toString).map {
+        case (requestor, job) ⇒
+          val message = s"Processor '${self.path.toString}' terminated (or timed out) for job $job."
+          log.error(message)
+          requestor ! JobFailure(job, new SparkPlugException(message))
+      }
   }
 }
 

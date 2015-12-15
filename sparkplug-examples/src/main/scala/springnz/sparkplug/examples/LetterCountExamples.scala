@@ -18,12 +18,8 @@ object LetterCount extends LocalExecutable("LetterCount") with Logging {
   }
 }
 
-class WaitPlugin extends SparkPlugin {
-  override def apply(input: Any): SparkOperation[Unit] = SparkOperation { _ ⇒ Thread.sleep(2000) }
-}
-
 class LetterCountPlugin extends LetterCount with SparkPlugin {
-  override def apply(input: Any): SparkOperation[(Long, Long)] = super.apply()
+  override def apply(input: Option[Any]): SparkOperation[(Long, Long)] = super.apply()
 }
 
 class LetterCount extends Logging {
