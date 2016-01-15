@@ -20,10 +20,10 @@ object CassandraExporter
   def apply[A: RowWriterFactory](dataSource: SparkOperation[RDD[A]],
     keySpace: String,
     table: String,
-    createQuery: Option[String] = None): SparkOperation[(RDD[A], Try[Unit])] = {
+    createQueries: List[String] = Nil): SparkOperation[(RDD[A], Try[Unit])] = {
 
     def createTableIfNotExists(ctx: SparkContext) =
-      createQuery.foreach { query ⇒
+      createQueries.foreach { query ⇒
         log.info(s"Creating table (if not exists) $keySpace.$table ...")
         CassandraConnector(ctx.getConf).withSessionDo(_.execute(query))
       }
