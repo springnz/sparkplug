@@ -24,7 +24,8 @@ object CassandraExporter
 
     def createTableIfNotExists(ctx: SparkContext) =
       createQueries.foreach { query ⇒
-        log.info(s"Creating table (if not exists) $keySpace.$table ...")
+        val firstLine = query.lines.toList.headOption.getOrElse("")
+        log.info(s"Executing query: '$firstLine' ...")
         CassandraConnector(ctx.getConf).withSessionDo(_.execute(query))
       }
 
