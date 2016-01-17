@@ -36,7 +36,7 @@ object Launcher extends Logging {
 
   def launch(clientAkkaAddress: String, jarPath: File, mainJarPattern: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
-    val fullExtraJarFolder = jarPath.fullPath
+    val fullExtraJarFolder = jarPath.pathAsString
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
@@ -51,7 +51,7 @@ object Launcher extends Logging {
 
     import BuilderOps._
 
-    val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.fullPath }
+    val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.pathAsString }
 
     val launcher = (new SparkLauncher)
       .setIfSome[String](mainJar, (l, mj) ⇒ l.setAppResource(mj))
@@ -67,7 +67,9 @@ object Launcher extends Logging {
       .setDeployMode(config.getString("spark.deploymode"))
     //      .addSparkArgs(sparkArgs) TODO: enable this functionality (need Spark 1.5 for this)
 
-    val extraJarFiles = jarPath.glob("**/*.jar").collect { case f ⇒ f.fullPath }.filterNot(_.contains("/akka-"))
+    val extraJarFiles = jarPath.glob("*.jar")
+      .map { case f ⇒ f.pathAsString }
+      .filterNot(_.contains("/akka-"))
 
     val launcherWithJars =
       if (sendJars)

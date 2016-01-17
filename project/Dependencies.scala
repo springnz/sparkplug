@@ -52,7 +52,7 @@ object Dependencies {
 
   // Shared compile
   val playJson = "com.typesafe.play" %% "play-json" % "2.4.2" exclude ("org.slf4j", "slf4j-log4j12")
-  val betterFiles = "com.github.pathikrit" %% "better-files" % "2.4.1"
+  val betterFiles = "com.github.pathikrit" %% "better-files" % "2.14.0"
 
   // SpringNZ projects
   val utilLib = "springnz" %% "util-lib" % utilLibVersion
