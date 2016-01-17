@@ -20,7 +20,7 @@ object ExecutorService extends Logging {
   // TODO: proper command line parsing to allow richer config options
   def main(args: Array[String]): Unit = {
     if (args.length != 2)
-      throw new IllegalArgumentException("Expected 2 arguments to ExecutorService, the app name and the akka address of the client actor.")
+      throw new IllegalArgumentException(s"Expected 2 arguments to ExecutorService, the app name and the akka address of the client actor. Args = : ${args.toList}")
     val appName = args(0)
     val sparkClientPath = args(1)
 

@@ -3,6 +3,7 @@ package springnz.sparkplug.client
 import akka.actor.TypedActor.PreStart
 import akka.actor._
 import better.files._
+import better.files.File._
 import com.typesafe.config.{ Config, ConfigFactory }
 import springnz.sparkplug.client.Constants._
 import springnz.sparkplug.client.Coordinator.JobRequestWithPromise

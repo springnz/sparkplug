@@ -1,6 +1,6 @@
 package springnz.sparkplug.client
 
-import better.files._
+import better.files.File._
 import org.scalatest._
 import springnz.util.Logging
 

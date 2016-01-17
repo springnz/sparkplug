@@ -14,12 +14,12 @@ object TestExtensions {
     val path = RDDPersister.getPath(projectName.name, rddName)
     if (overwrite || (!overwrite && !path.exists)) {
       if (path.exists) {
-        log.info(s"deleting existing RDD at ${path.fullPath}")
+        log.info(s"deleting existing RDD at ${path.pathAsString}")
         path.delete()
       }
-      RDDPersister.persistRDD(path.fullPath, rdd)
+      RDDPersister.persistRDD(path.pathAsString, rdd)
     } else { // (!overwrite && path.exists)
-      log.info(s"Not persisting RDD that already exists at path [${path.fullPath}]")
+      log.info(s"Not persisting RDD that already exists at path [${path.pathAsString}]")
       rdd
     }
   }
@@ -41,7 +41,7 @@ object TestExtensions {
       SparkOperation { ctx ⇒
         val path = RDDPersister.getPath(projectName.name, rddName)
         if (path.exists)
-          ctx.objectFile[A](path.fullPath)
+          ctx.objectFile[A](path.pathAsString)
         else {
           val rdd = operation.run(ctx)
           val sampled = sampler(rdd)
@@ -74,7 +74,7 @@ object TestExtensions {
       SparkOperation { ctx ⇒
         val path = RDDPersister.getPath(projectName.name, dataFrameName)
         val sampledRDD = if (path.exists)
-          ctx.objectFile[String](path.fullPath)
+          ctx.objectFile[String](path.pathAsString)
         else {
           val df = operation.run(ctx)
           val rdd: RDD[String] = df.toJSON
