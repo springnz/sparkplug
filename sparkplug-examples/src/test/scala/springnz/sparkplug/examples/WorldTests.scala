@@ -12,7 +12,7 @@ class WorldTests extends WordSpec with ShouldMatchers with Logging {
   "World Jdbc Feed" should {
     "return the columns and the number of countries" in new SimpleTestContext("WorldTests") with WorldTestPipeline {
 
-      import springnz.sparkplug.testkit.TestExtensions._
+      import springnz.sparkplug.core.SparkPimpers._
 
       val (countries, count) = execute(countriesOperation.takeOrderedWithCount(20)(Ordering.by(_.Name))).get
       val first = countries.head

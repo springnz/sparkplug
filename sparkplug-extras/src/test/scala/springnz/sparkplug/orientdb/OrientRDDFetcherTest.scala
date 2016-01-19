@@ -1,10 +1,13 @@
 package springnz.sparkplug.orientdb
 
+import com.metreta.spark.orientdb.connector._
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 import org.scalatest.{ ShouldMatchers, WordSpec }
 import springnz.orientdb.session.ODBSession
 import springnz.orientdb.test.ODBMemoryTest
+import springnz.sparkplug.core.SparkOperation
+import springnz.sparkplug.orientdb.OrientRDDFetcherTest.Dictator
 import springnz.sparkplug.testkit._
 
 class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTest {
@@ -44,8 +47,23 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
     resultWithWhereClause shouldBe (1 to numDocs / 2).toList
   }
 
+  "Save SparkRDD to OrientDB" in new SimpleTestContext("") {
+    val dictators = List(Dictator(1971, "Idi", "Uganda"), Dictator(1980, "Robert", "Zimbabwe"), Dictator(2009, "Jacob", "South Africa"))
+    val operation: SparkOperation[Set[Dictator]] = SparkOperation { ctx ⇒
+      val rdd = ctx.parallelize(dictators)
+      rdd.saveToOrient("Dictators")
+      val retrievedRDD = OrientRDDFetcher.select[Dictator]("Dictators", Some("year > 1979"), doc ⇒ {
+        Dictator(doc.field("year").asInstanceOf[Int], doc.field("name").asInstanceOf[String], doc.field("country").asInstanceOf[String])
+      })
+      retrievedRDD.run(ctx).collect().toSet
+    }
+
+    val savedAndRetrieved = execute(operation)
+    savedAndRetrieved.get shouldBe dictators.filter(dic ⇒ dic.year > 1979).toSet
+  }
 }
 
 object OrientRDDFetcherTest {
+  case class Dictator(year: Int, name: String, country: String)
   def docTransformer(doc: ODocument) = doc.field("id").asInstanceOf[Int]
 }
