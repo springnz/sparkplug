@@ -15,7 +15,7 @@ object Dependencies {
     "1.4.1" -> "1.4.0")
 
   val elasticSearchSparkVersionMap = Map(
-    "1.5.1" -> "2.2.0-beta1",
+    "1.5.1" -> "2.2.0-rc1",
     "1.4.1" -> "2.2.0-m1")
 
   // Spark
