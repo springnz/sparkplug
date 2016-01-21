@@ -1,5 +1,6 @@
 package springnz.sparkplug.core
 
+import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
 
 import scala.reflect.ClassTag
@@ -27,7 +28,66 @@ object SparkPimpers {
   }
 
   implicit class RDDOption[A: ClassTag](rdd: RDD[Option[A]]) {
-
   }
+
+  // Converts RDDs to Types that can be verified in test assertions
+  implicit class TestResultConverter[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
+    def count = {
+      operation.map { rdd ⇒
+        val n = rdd.count
+        log.debug(s"Produced an RDD of size ${n}")
+        n
+      }
+    }
+
+    def collect(): SparkOperation[Array[A]] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        rdd.collect()
+      }
+    }
+
+    def take(n: Int): SparkOperation[Array[A]] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        rdd.take(n)
+      }
+    }
+
+    def takeOrdered(n: Int)(implicit ord: Ordering[A]): SparkOperation[Array[A]] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        rdd.takeOrdered(n)
+      }
+    }
+
+    def collectWithCount(): SparkOperation[(Array[A], Long)] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        (rdd.collect, count)
+      }
+    }
+
+    def takeWithCount(n: Int): SparkOperation[(Array[A], Long)] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        (rdd.take(n), count)
+      }
+    }
+
+    def takeOrderedWithCount(n: Int)(implicit ord: Ordering[A]): SparkOperation[(Array[A], Long)] = {
+      operation.map { rdd ⇒
+        val count = rdd.count
+        log.debug(s"Produced an RDD of size $count")
+        (rdd.takeOrdered(n), count)
+      }
+    }
+  }
+
 }
 
