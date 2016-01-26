@@ -5,13 +5,12 @@ object Dependencies {
   // Version Numbers
   val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
-  val elasticsearchVersion = "2.0.2"
-  val utilLibVersion = "2.8.0"
-  val elasticsearchLibVersion = "0.1.1"
+  val utilLibVersion = "2.9.0-SNAPSHOT"
+  val elasticsearchLibVersion = "0.1.2-SNAPSHOT"
   val orientDBMigrationsVersion = "2.7.0"
 
   val cassandraConnectorVersionMap = Map(
-    "1.5.1" -> "1.5.0-M2",
+    "1.5.1" -> "1.5.0-RC1",
     "1.4.1" -> "1.4.0")
 
   val elasticSearchSparkVersionMap = Map(
@@ -26,7 +25,6 @@ object Dependencies {
   // Spark Data
   val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % cassandraConnectorVersionMap(sparkVersion)
   val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % elasticSearchSparkVersionMap(sparkVersion)
-  val elasticsearch = "org.elasticsearch" % "elasticsearch" % elasticsearchVersion
 
   // Other Data Drivers
   val mySqlDriver = "mysql" % "mysql-connector-java" % "5.1.36"
@@ -69,7 +67,7 @@ object Dependencies {
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % Test
 
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
-  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticsearch, elasticSearchLib)
+  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticSearchLib)
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
