@@ -8,6 +8,7 @@ object Dependencies {
   val utilLibVersion = "2.9.0-SNAPSHOT"
   val elasticsearchLibVersion = "0.1.2-SNAPSHOT"
   val orientDBMigrationsVersion = "2.7.0"
+  val sparkOrientConnectorVersion = "1.5.0-SNAPSHOT"
 
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-RC1",
@@ -55,6 +56,7 @@ object Dependencies {
   // SpringNZ projects
   val utilLib = "springnz" %% "util-lib" % utilLibVersion
   val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
+  val sparkOrientDBConnector = "springnz" %% "spark-orientdb-connector" % sparkOrientConnectorVersion
 
   // for spark-orientdb-connector
   val orientDBMigrations = "springnz" %% "orientdb-migrations" % orientDBMigrationsVersion
@@ -71,7 +73,7 @@ object Dependencies {
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
-  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, orientGraphDB, sparkGraphx, tinkerpop)
+  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, sparkOrientDBConnector, orientGraphDB, sparkGraphx, tinkerpop)
 
   val sharedCompileDependencies = Seq(slf4jApi, playJson, betterFiles, utilLib)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
