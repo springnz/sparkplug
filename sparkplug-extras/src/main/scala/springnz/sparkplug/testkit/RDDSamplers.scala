@@ -11,11 +11,12 @@ import springnz.util.Logging
 import scala.reflect.ClassTag
 
 object RDDSamplers extends Logging {
-  def identitySampler[A: ClassTag](rdd: RDD[A]) = rdd
+  def identitySampler[A: ClassTag](rdd: RDD[A]): RDD[A] = rdd
 
-  def shrinkingSampler[A: ClassTag](sampleParams: RDDShrinkingSamplerParams = sourceRDDParams)(rdd: RDD[A]) = shrinkingSample(rdd, sampleParams)
+  def shrinkingSampler[A: ClassTag](sampleParams: RDDShrinkingSamplerParams = sourceRDDParams)(rdd: RDD[A]): RDD[A] =
+    shrinkingSample(rdd, sampleParams)
 
-  def takeSampler[A: ClassTag](count: Int, partitions: Int = -1)(rdd: RDD[A]) = {
+  def takeSampler[A: ClassTag](count: Int, partitions: Int = -1)(rdd: RDD[A]): RDD[A] = {
     val sc = rdd.sparkContext
     val parts = if (partitions > 0) partitions else sc.defaultParallelism
     sc.parallelize(rdd.take(count), parts)
