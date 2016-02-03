@@ -50,7 +50,7 @@ object Dependencies {
   val logBackTestDependencies = Seq(logBackCoreTest, logBackClassicTest)
 
   // Shared compile
-  val playJson = "com.typesafe.play" %% "play-json" % "2.4.2" exclude ("org.slf4j", "slf4j-log4j12")
+  val json4sJackson = "org.json4s" %% "json4s-jackson" % "3.2.10"
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.14.0"
 
   // SpringNZ projects
@@ -75,7 +75,7 @@ object Dependencies {
 
   val sparkOrientConnectorDependencies = Seq(orientDBMigrations, sparkOrientDBConnector, orientGraphDB, sparkGraphx, tinkerpop)
 
-  val sharedCompileDependencies = Seq(slf4jApi, playJson, betterFiles, utilLib)
+  val sharedCompileDependencies = Seq(slf4jApi, json4sJackson, betterFiles, utilLib)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
   val sharedDependencies = sharedCompileDependencies ++ sharedTestDependencies
 

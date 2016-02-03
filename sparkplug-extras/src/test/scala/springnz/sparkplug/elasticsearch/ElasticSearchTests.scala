@@ -2,13 +2,15 @@ package springnz.sparkplug.elasticsearch
 
 import org.apache.spark.rdd.RDD
 import org.elasticsearch.spark._
+import org.json4s.JsonAST.JValue
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 import org.scalatest._
-import play.api.libs.json._
 import springnz.elasticsearch.server.{ ESServer, ESServerParams }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.{ ESExportDetails, ESExporterParams }
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.util.{ Logging, PlayJsonUtil }
+import springnz.util.{ Json4sUtil, Logging }
 
 import scala.util.{ Success, Try }
 
@@ -16,10 +18,10 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
 
   val testData = ESExporterTest.testData
 
-  val testDataArray = (Json.parse(testData) match {
-    case JsArray(sequence) ⇒ sequence
-    case _                 ⇒ Seq.empty[JsValue]
-  }) map { jsValue ⇒ Json.stringify(jsValue) }
+  val testDataArray = (parse(testData) match {
+    case JArray(sequence) ⇒ sequence
+    case _                ⇒ Seq.empty[JValue]
+  }) map { jsValue ⇒ pretty(jsValue) }
 
   override type FixtureParam = ESServer
   val port = 9250
@@ -41,8 +43,8 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       val operation = SparkOperation { ctx ⇒
         val rdd = ctx.parallelize(testDataArray)
         rdd.map { jsonString ⇒
-          import PlayJsonUtil._
-          val parsedJson: JsValue = Json.parse(jsonString)
+          import Json4sUtil._
+          val parsedJson: JValue = parse(jsonString)
           val unWrappedJson = parsedJson.toMap()
           unWrappedJson.asInstanceOf[Map[String, Any]]
         }
@@ -70,9 +72,9 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       mapArray.length shouldBe 5
 
       val verifiedOutput = result._3
-      import PlayJsonUtil._
+      import Json4sUtil._
       val verifiedJson = verifiedOutput map {
-        case (_, output) ⇒ Json.parse(output).toMap().asInstanceOf[Map[String, Any]]
+        case (_, output) ⇒ parse(output).toMap().asInstanceOf[Map[String, Any]]
       }
 
       verifiedJson.map(_.size).head shouldBe 22
