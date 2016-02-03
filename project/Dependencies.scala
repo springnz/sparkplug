@@ -8,6 +8,7 @@ object Dependencies {
   val utilLibVersion = "2.9.0-SNAPSHOT"
   val elasticsearchLibVersion = "0.1.2-SNAPSHOT"
   val orientDBMigrationsVersion = "2.7.0"
+  val sparkOrientConnectorVersion = "1.5.0-SNAPSHOT"
 
   val cassandraConnectorVersionMap = Map(
     "1.5.1" -> "1.5.0-RC1",
@@ -49,12 +50,13 @@ object Dependencies {
   val logBackTestDependencies = Seq(logBackCoreTest, logBackClassicTest)
 
   // Shared compile
-  val playJson = "com.typesafe.play" %% "play-json" % "2.4.2" exclude ("org.slf4j", "slf4j-log4j12")
+  val json4sJackson = "org.json4s" %% "json4s-jackson" % "3.2.10"
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.14.0"
 
   // SpringNZ projects
   val utilLib = "springnz" %% "util-lib" % utilLibVersion
   val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
+  val sparkOrientDBConnector = "springnz" %% "spark-orientdb-connector" % sparkOrientConnectorVersion
 
   // for spark-orientdb-connector
   val orientDBMigrations = "springnz" %% "orientdb-migrations" % orientDBMigrationsVersion
@@ -71,9 +73,9 @@ object Dependencies {
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
 
-  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, orientGraphDB, sparkGraphx, tinkerpop)
+  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, sparkOrientDBConnector, orientGraphDB, sparkGraphx, tinkerpop)
 
-  val sharedCompileDependencies = Seq(slf4jApi, playJson, betterFiles, utilLib)
+  val sharedCompileDependencies = Seq(slf4jApi, json4sJackson, betterFiles, utilLib)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
   val sharedDependencies = sharedCompileDependencies ++ sharedTestDependencies
 

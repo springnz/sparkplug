@@ -1,6 +1,6 @@
 package springnz.sparkplug.examples
 
-import play.api.libs.json.{ Json, Reads }
+import org.json4s.DefaultFormats
 
 object WorldDataTypes {
   case class Country(
@@ -19,7 +19,4 @@ object WorldDataTypes {
     HeadOfState: Option[String],
     Capital: Option[Long],
     Code2: String)
-
-  implicit val headerReads: Reads[Country] = Json.reads[Country]
-
 }
