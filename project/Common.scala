@@ -86,7 +86,7 @@ object Common {
       .settings(commonSettings: _*)
       .settings(libraryDependencies ++= libraryDeps ++ sharedDependencies)
       .settings(dependencyOverrides ++= dependencyOverridesSet)
-      .settings(libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) })
+//      .settings(libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) })
       .settings(name := projName)
       .enablePlugins(UniversalPlugin)
       .enablePlugins(DockerPlugin)

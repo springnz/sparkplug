@@ -44,7 +44,8 @@ object Dependencies {
   val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.10"
   val logBackCore = "ch.qos.logback" % "logback-core" % "1.1.3"
   val logBackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
-  val logBackDependencies = Seq(logBackClassic, logBackCore)
+  val log4jOverSlf4j = "org.slf4j" % "log4j-over-slf4j" % "1.7.10"
+  val logBackDependencies = Seq(logBackClassic, logBackCore, log4jOverSlf4j)
   val logBackCoreTest = "ch.qos.logback" % "logback-core" % "1.1.3" % Test
   val logBackClassicTest = "ch.qos.logback" % "logback-classic" % "1.1.3" % Test
   val logBackTestDependencies = Seq(logBackCoreTest, logBackClassicTest)
