@@ -22,7 +22,7 @@ object Common {
     "sonatype-oss-public" at "https://oss.sonatype.org/content/groups/public/",
     Resolver.bintrayRepo("pathikrit", "maven"), // for betterfiles
     "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/" // for wabisabi
-  )
+    )
 
   lazy val commonSettings = Seq(
     organization := organisationString,
@@ -54,8 +54,7 @@ object Common {
           outputStrategy = outputStrategy.value,
           runJVMOptions = javaOptions.value,
           workingDirectory = Some(new File(System.getProperty("user.dir"))),
-          envVars = envVars.value
-        )
+          envVars = envVars.value)
 
         group.copy(runPolicy = Tests.SubProcess(forkOptions))
       }
@@ -86,7 +85,8 @@ object Common {
       .settings(commonSettings: _*)
       .settings(libraryDependencies ++= libraryDeps ++ sharedDependencies)
       .settings(dependencyOverrides ++= dependencyOverridesSet)
-//      .settings(libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) })
+      // TODO: remove comment when sure we don't need
+      // .settings(libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) })
       .settings(name := projName)
       .enablePlugins(UniversalPlugin)
       .enablePlugins(DockerPlugin)
