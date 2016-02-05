@@ -26,9 +26,12 @@ object Launcher extends Logging {
   }
 
   private def executeProcess(process: Process): Future[Unit] = Future {
+    val outStream = scala.io.Source.fromInputStream(process.getInputStream)
+    for (line ← outStream.getLines()) {
+      log.info(line)
+    }
     val errorStream = scala.io.Source.fromInputStream(process.getErrorStream)
-    val errorLines = errorStream.getLines()
-    for (line ← errorLines) {
+    for (line ← errorStream.getLines()) {
       log.info(line)
     }
     process.waitFor()
