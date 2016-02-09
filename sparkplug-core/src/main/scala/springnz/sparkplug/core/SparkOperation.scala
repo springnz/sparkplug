@@ -13,7 +13,6 @@ sealed trait SparkOperation[+A] {
   // without needing to import scalaz.syntax.bind._
   def map[B](f: A ⇒ B): SparkOperation[B] = SparkOperation.monad.map(this)(f)
   def flatMap[B](f: A ⇒ SparkOperation[B]): SparkOperation[B] = SparkOperation.monad.bind(this)(f)
-  def withFilter(p: A ⇒ Boolean): SparkOperation[A] = this // this enables pattern matching in for-comprehensions
 }
 
 object SparkOperation {

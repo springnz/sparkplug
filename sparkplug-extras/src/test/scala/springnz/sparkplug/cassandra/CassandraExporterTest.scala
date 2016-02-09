@@ -48,7 +48,8 @@ class CassandraExporterTest extends WordSpec with ShouldMatchers with Logging {
 
       val dropTableThenExport = for {
         _ ← CassandraUtil.dropTable(keySpace, table)
-        (rdd, exportResult) ← exporter
+        result ← exporter
+        (rdd, exportResult) = result
       } yield {
         (rdd.collect(), exportResult)
       }

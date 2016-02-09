@@ -3,7 +3,7 @@ package springnz.sparkplug.cassandra
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.RowWriterFactory
-import springnz.sparkplug.core.{ SparkOperation }
+import springnz.sparkplug.core.SparkOperation
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import springnz.util.Logging

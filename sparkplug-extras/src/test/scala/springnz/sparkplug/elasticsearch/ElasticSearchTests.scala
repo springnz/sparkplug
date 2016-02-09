@@ -60,7 +60,8 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
       }
 
       val verifiedResult = for {
-        (rddOfMaps, tryUnit) ← mappedResult
+        result ← mappedResult
+        (rddOfMaps, tryUnit) = result
         verifiedRdd ← verify
       } yield (rddOfMaps.collect(), tryUnit, verifiedRdd.collect())
 
