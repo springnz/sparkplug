@@ -54,7 +54,7 @@ object ClientExecutor extends Logging {
       override def execute[A](pluginClass: String, data: Option[Any]): Future[A] = {
         val jobRequest = JobRequest(pluginClass, data)
         val jobCompletePromise = Promise[Any]()
-        coordinatorFuture.map {
+        coordinatorFuture.foreach {
           coordinator ⇒
             val requestWithPromise = JobRequestWithPromise(jobRequest, Some(jobCompletePromise))
             coordinator ! requestWithPromise
@@ -73,10 +73,9 @@ object ClientExecutor extends Logging {
         }
       }
 
-      override def shutDown() = {
-        Await.result(coordinatorFuture.map {
-          coordinator ⇒ coordinator ! ShutDown // to release the remote connection
-        }, 10 seconds)
+      override def shutDown(): Unit = {
+        coordinatorFuture.foreach(coordinator ⇒ coordinator ! ShutDown)
+        Await.result(coordinatorFuture, 10.seconds)
         // give it 20 seconds to try to shut down the Client and Server, then just terminate the actorSystem
         log.info(s"ActorSystem '$actorSystemName' shutting down...")
         actorSystem.shutdown()
