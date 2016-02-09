@@ -75,7 +75,7 @@ object ClientExecutor extends Logging {
 
       override def shutDown(): Unit = {
         coordinatorFuture.foreach(coordinator ⇒ coordinator ! ShutDown)
-        Await.result(coordinatorFuture, 10 seconds)
+        Await.result(coordinatorFuture, 10.seconds)
         // give it 20 seconds to try to shut down the Client and Server, then just terminate the actorSystem
         log.info(s"ActorSystem '$actorSystemName' shutting down...")
         actorSystem.shutdown()

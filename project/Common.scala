@@ -27,7 +27,7 @@ object Common {
   lazy val commonSettings = Seq(
     organization := organisationString,
     scalaVersion := scalaVersionString,
-    scalacOptions := Seq("-Xlint", "-deprecation"),
+    scalacOptions := Seq("-Xlint", "-deprecation", "-feature"),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD"),
     publishTo := {
       if (isSnapshot.value)

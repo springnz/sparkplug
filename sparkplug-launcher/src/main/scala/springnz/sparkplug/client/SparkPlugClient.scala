@@ -12,7 +12,7 @@ object SparkPlugClient {
 
     implicit val ec = scala.concurrent.ExecutionContext.global
     val sequence: Future[List[Any]] = Future.sequence(futures)
-    Await.result(sequence, 120 seconds)
+    Await.result(sequence, 120.seconds)
     executor.shutDown()
   }
 }
