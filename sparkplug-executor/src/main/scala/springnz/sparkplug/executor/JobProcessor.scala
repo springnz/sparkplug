@@ -5,7 +5,7 @@ import java.util.ServiceLoader
 import akka.actor._
 import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
 import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess }
-import springnz.sparkplug.core.{ Descriptor, SparkOperation, SparkPlugin }
+import springnz.sparkplug.core.{ SparkOperation, SparkPlugin }
 import springnz.util.{ Logging, Pimpers }
 import org.apache.spark.SparkContext
 import org.apache.spark.scheduler.SparkListener
@@ -21,25 +21,22 @@ object JobProcessor {
 class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Logging {
 
   def executeJob[A, R](job: JobRequest, originator: ActorRef): Unit = {
-    val descriptor = job.descriptor
-    val factoryName = descriptor.classname
+    log.info(s"Loading and instantiating job '$job'.")
+    val plugin = job.plugin()
 
     implicit val ec = context.dispatcher
-    val f: Future[descriptor.R] = Future {
-      log.info(s"Loading and instantiating job '$factoryName'.")
-      val factoryAny = Class.forName(factoryName).newInstance()
-      val sp = factoryAny.asInstanceOf[SparkPlugin with Descriptor]
-      val operation = sp.apply(job.data.asInstanceOf[Option[sp.A]])
-
-      log.info(s"Executing job '$factoryName'.")
+    val f: Future[plugin.R] = Future {
+      val impl = plugin.asInstanceOf[SparkPlugin]
+      val operation = impl.apply(job.data.asInstanceOf[Option[impl.A]])
+      log.info(s"Executing job '$operation'.")
       val result = operation.run(sparkContext)
-      log.info(s"Job '$factoryName' finished.")
+      log.info(s"Job '$operation' finished.")
 
       // TODO: do something about the SparkListener (not sure what)
       val listener = new SparkListener {}
       sparkContext.addSparkListener(listener)
 
-      result.asInstanceOf[descriptor.R]
+      result.asInstanceOf[plugin.R]
     }
 
     f.onComplete {

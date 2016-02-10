@@ -20,12 +20,10 @@ object LetterCount extends LocalExecutable("LetterCount") with Logging {
   }
 }
 
-trait LetterCountPluginDescriptor extends DescriptorAux[Nothing, (Long, Long)] {
-  override val classname: String = "springnz.sparkplug.examples.LetterCountPlugin"
-}
-object LetterCountPluginDescriptor extends LetterCountPluginDescriptor
+class LetterCountPlugin extends LetterCount with SparkPlugin {
+  override type A = Nothing
+  override type R = (Long, Long)
 
-class LetterCountPlugin extends LetterCount with SparkPlugin with LetterCountPluginDescriptor {
   override def apply(input: Option[Nothing]): SparkOperation[(Long, Long)] = super.apply()
 }
 

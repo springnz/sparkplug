@@ -3,7 +3,7 @@ package springnz.sparkplug.client
 import akka.actor.TypedActor.PreStart
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
-import springnz.sparkplug.core.DescriptorAux
+import springnz.sparkplug.core.{ SparkPluginI, SparkPlugin }
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.util.{ Pimpers, Logging }
 
@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 trait ClientExecutor {
-  def execute[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A]): Future[R]
+  def execute[A, R](plugin: () ⇒ SparkPlugin, data: Option[A]): Future[R]
   def shutDown(): Unit
 }
 
@@ -25,10 +25,11 @@ object ClientExecutor extends Logging {
 
   def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
 
-  def apply[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[R] = {
+  def apply[A, R](plugin: () ⇒ SparkPlugin, data: Option[A], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[R] = {
     val executor = create(params)
+
     executor
-      .execute(pluginDescriptor, data)
+      .execute(plugin, data)
       .andThen { case _ ⇒ executor.shutDown() }
   }
 
@@ -52,8 +53,8 @@ object ClientExecutor extends Logging {
 
     new ClientExecutor {
 
-      override def execute[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A]): Future[R] = {
-        val jobRequest = JobRequest(pluginDescriptor, data)
+      override def execute[A, R](plugin: () ⇒ SparkPlugin, data: Option[A]): Future[R] = {
+        val jobRequest = JobRequest(plugin, data)
         val jobCompletePromise = Promise[Any]()
         coordinatorFuture.foreach {
           coordinator ⇒

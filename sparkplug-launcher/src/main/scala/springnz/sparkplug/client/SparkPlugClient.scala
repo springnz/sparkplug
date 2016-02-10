@@ -1,8 +1,6 @@
 package springnz.sparkplug.client
 
-import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
-
-import springnz.sparkplug.examples.LetterCountPluginDescriptor
+import springnz.sparkplug.examples.LetterCountPlugin
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -12,7 +10,7 @@ object SparkPlugClient {
     val executor = ClientExecutor.create()
 
     val futures: List[Future[(Long, Long)]] = List.fill(10) {
-      executor.execute(LetterCountPluginDescriptor, None)
+      executor.execute(() ⇒ new LetterCountPlugin(), None)
     }
 
     implicit val ec = scala.concurrent.ExecutionContext.global

@@ -28,17 +28,18 @@ object SparkOperation {
   }
 }
 
-trait Descriptor extends Serializable {
+// todo: freely visible to outsiders
+trait SparkPluginI extends Serializable {
   type A
   type R
-  val classname: String
 }
 
-trait DescriptorAux[AA, RR] extends Descriptor {
+trait SparkPluginAux[AA, RR] extends SparkPlugin {
   override type A = AA
   override type R = RR
 }
 
-trait SparkPlugin { self: Descriptor ⇒
+//todo private, dont show it to others
+trait SparkPlugin extends SparkPluginI {
   def apply(input: Option[A]): SparkOperation[R]
 }
