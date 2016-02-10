@@ -1,5 +1,6 @@
 package springnz.sparkplug.examples
 
+import com.typesafe.scalalogging.Logger
 import springnz.sparkplug.core.SparkPlugin
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
@@ -8,6 +9,7 @@ import springnz.util.Logging
 
 import better.files._
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object LetterCount extends LocalExecutable("LetterCount") with Logging {
@@ -18,8 +20,13 @@ object LetterCount extends LocalExecutable("LetterCount") with Logging {
   }
 }
 
-class LetterCountPlugin extends LetterCount with SparkPlugin {
-  override def apply(input: Option[Any]): SparkOperation[(Long, Long)] = super.apply()
+trait LetterCountPluginDescriptor extends DescriptorAux[Nothing, (Long, Long)] {
+  override val classname: String = "springnz.sparkplug.examples.LetterCountPlugin"
+}
+object LetterCountPluginDescriptor extends LetterCountPluginDescriptor
+
+class LetterCountPlugin extends LetterCount with SparkPlugin with LetterCountPluginDescriptor {
+  override def apply(input: Option[Nothing]): SparkOperation[(Long, Long)] = super.apply()
 }
 
 class LetterCount extends Logging {

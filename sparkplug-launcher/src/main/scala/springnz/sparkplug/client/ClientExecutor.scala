@@ -3,6 +3,7 @@ package springnz.sparkplug.client
 import akka.actor.TypedActor.PreStart
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
+import springnz.sparkplug.core.DescriptorAux
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.util.{ Pimpers, Logging }
 
@@ -11,7 +12,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 trait ClientExecutor {
-  def execute[A](pluginClass: String, data: Option[Any]): Future[A]
+  def execute[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A]): Future[R]
   def shutDown(): Unit
 }
 
@@ -24,10 +25,10 @@ object ClientExecutor extends Logging {
 
   def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
 
-  def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
+  def apply[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[R] = {
     val executor = create(params)
     executor
-      .execute(pluginClass, data)
+      .execute(pluginDescriptor, data)
       .andThen { case _ ⇒ executor.shutDown() }
   }
 
@@ -51,8 +52,8 @@ object ClientExecutor extends Logging {
 
     new ClientExecutor {
 
-      override def execute[A](pluginClass: String, data: Option[Any]): Future[A] = {
-        val jobRequest = JobRequest(pluginClass, data)
+      override def execute[A, R](pluginDescriptor: DescriptorAux[A, R], data: Option[A]): Future[R] = {
+        val jobRequest = JobRequest(pluginDescriptor, data)
         val jobCompletePromise = Promise[Any]()
         coordinatorFuture.foreach {
           coordinator ⇒
@@ -69,7 +70,7 @@ object ClientExecutor extends Logging {
         jobCompletePromise.future.map {
           case any ⇒
             log.info(s"Future complete request $jobRequest. Return value: $any")
-            any.asInstanceOf[A]
+            any.asInstanceOf[R]
         }
       }
 

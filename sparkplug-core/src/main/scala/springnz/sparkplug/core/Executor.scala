@@ -17,6 +17,7 @@ trait Executor[B] extends ExecutorU {
 
 // A SparkExecutor creates a spark context on the fly and releases it
 trait SparkExecutor extends Executor[Try[_]] with Logging {
+
   def execute[A](operation: SparkOperation[A]): Try[A] = {
     log.debug(s"SparkExecutor configuration:\n$configurer")
     configurer { cfg ⇒
@@ -30,6 +31,7 @@ trait SparkExecutor extends Executor[Try[_]] with Logging {
         }
     }
   }
+
 }
 
 // A LongLivedExecutor creates a spark context and keeps it for as long as it lives

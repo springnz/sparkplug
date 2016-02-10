@@ -29,6 +29,7 @@ lazy val sparkPlugExamples = CreateProject("sparkplug-examples", sparkExampleLib
 
 lazy val sparkExecutor = CreateProject("sparkplug-executor", sparkExecutorLibDependencies)
   .dependsOn(dep(sparkPlugCore), sparkPlugExamples % "test->compile")
+  .dependsOn(dep(sparkPlugExamples), sparkPlugExamples % "test->compile") // TODO: remove
 
 lazy val sparkLauncher = CreateProject("sparkplug-launcher", sparkLauncherLibDependencies)
   .dependsOn(dep(sparkPlugCore), dep(sparkExecutor))

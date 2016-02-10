@@ -28,7 +28,17 @@ object SparkOperation {
   }
 }
 
-trait SparkPlugin {
-  def apply(input: Option[Any]): SparkOperation[Any]
+trait Descriptor extends Serializable {
+  type A
+  type R
+  val classname: String
 }
 
+trait DescriptorAux[AA, RR] extends Descriptor {
+  override type A = AA
+  override type R = RR
+}
+
+trait SparkPlugin { self: Descriptor ⇒
+  def apply(input: Option[A]): SparkOperation[R]
+}
