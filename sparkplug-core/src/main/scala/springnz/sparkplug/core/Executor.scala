@@ -1,9 +1,8 @@
 package springnz.sparkplug.core
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.SparkContext
-import springnz.sparkplug.util.{ Pimpers, Logging }
-import Pimpers._
-import springnz.sparkplug.util.Logging
+import springnz.sparkplug.util.Pimpers._
 
 import scala.util.Try
 
@@ -17,13 +16,14 @@ trait Executor[B] extends ExecutorU {
 }
 
 // A SparkExecutor creates a spark context on the fly and releases it
-trait SparkExecutor extends Executor[Try[_]] with Logging {
+trait SparkExecutor extends Executor[Try[_]] with LazyLogging {
   def execute[A](operation: SparkOperation[A]): Try[A] = {
-    log.debug(s"SparkExecutor configuration:\n$configurer")
+    logger.debug(s"SparkExecutor configuration:\n$configurer")
     configurer { cfg ⇒
       val ctx = new SparkContext(cfg)
+      implicit lazy val log = logger
       Try {
-        log.debug("Executing operation: " + operation.getClass.getName)
+        logger.debug("Executing operation: " + operation.getClass.getName)
         operation.run(ctx)
       }.withErrorLog("Error executing operation")
         .withFinally {
@@ -35,15 +35,17 @@ trait SparkExecutor extends Executor[Try[_]] with Logging {
 
 // A LongLivedExecutor creates a spark context and keeps it for as long as it lives
 // The StopContext must be manually called (just like in Spark)
-trait LongLivedExecutor extends Executor[Try[_]] with Logging {
+trait LongLivedExecutor extends Executor[Try[_]] with LazyLogging {
 
   lazy val sparkContext: SparkContext = configurer { cfg ⇒ new SparkContext(cfg) }
 
-  def execute[A](operation: SparkOperation[A]): Try[A] =
+  def execute[A](operation: SparkOperation[A]): Try[A] = {
+    implicit lazy val log = logger
     Try {
-      log.debug("Executing operation: " + operation.getClass.getName)
+      logger.debug("Executing operation: " + operation.getClass.getName)
       operation.run(sparkContext)
     }.withErrorLog("Error executing operation")
+  }
 
   def stopContext(): Unit = sparkContext.stop()
 

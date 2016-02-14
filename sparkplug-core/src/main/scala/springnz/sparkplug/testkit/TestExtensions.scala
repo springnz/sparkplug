@@ -1,6 +1,6 @@
 package springnz.sparkplug.testkit
 
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{ LazyLogging, Logger }
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{ DataFrame, SQLContext }
 import springnz.sparkplug.core.SparkOperation
@@ -8,19 +8,19 @@ import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 
-object TestExtensions extends Logging {
+object TestExtensions extends LazyLogging {
 
   private def persistTestResource[A: ClassTag](rdd: RDD[A], rddName: String, overwrite: Boolean = false)(
     implicit projectName: ProjectName): RDD[A] = {
     val path = RDDPersister.getPath(projectName.name, rddName)
     if (overwrite || (!overwrite && !path.exists)) {
       if (path.exists) {
-        log.info(s"deleting existing RDD at ${path.pathAsString}")
+        logger.info(s"deleting existing RDD at ${path.pathAsString}")
         path.delete()
       }
       RDDPersister.persistRDD(path.pathAsString, rdd)
     } else { // (!overwrite && path.exists)
-      log.info(s"Not persisting RDD that already exists at path [${path.pathAsString}]")
+      logger.info(s"Not persisting RDD that already exists at path [${path.pathAsString}]")
       rdd
     }
   }

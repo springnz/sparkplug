@@ -1,7 +1,7 @@
 package springnz.sparkplug.examples
 
 import org.scalatest._
-import springnz.sparkplug.testkit.CassandraTestContext
+import springnz.sparkplug.testkit.SimpleTestContext
 import springnz.sparkplug.util.Logging
 
 /**
@@ -10,7 +10,7 @@ import springnz.sparkplug.util.Logging
 class PipelineTests extends WordSpec with ShouldMatchers with Logging with WeatherDataJoinTestPipeline {
 
   "WeatherDataFeed" should {
-    "return success with an RDD of Weather Data" in new CassandraTestContext("VaultFeed") {
+    "return success with an RDD of Weather Data" in new SimpleTestContext("VaultFeed") {
       // pipe the result into a type that can be inspected after the SparkContext is stopped
       val feedResult = execute(rawWeatherFeed map {
         returnVal ⇒
@@ -25,7 +25,7 @@ class PipelineTests extends WordSpec with ShouldMatchers with Logging with Weath
   }
 
   "WeatherDataJoin" should {
-    "return success with the number of rows in the join table" in new CassandraTestContext("WeatherDataJoin") {
+    "return success with the number of rows in the join table" in new SimpleTestContext("WeatherDataJoin") {
       val joinResult = execute(weatherDataJoin map {
         returnVal ⇒
           // turn it into something we can inspect

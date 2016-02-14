@@ -2,6 +2,7 @@ package springnz.sparkplug.client
 
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.scalalogging.LazyLogging
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.util.{ Pimpers, Logging }
 
@@ -14,10 +15,11 @@ trait ClientExecutor {
   def shutDown(): Unit
 }
 
-object ClientExecutor extends Logging {
+object ClientExecutor extends LazyLogging {
   import Constants._
   import Coordinator._
   import Pimpers._
+  implicit lazy val clientLogger = logger
 
   case class ClientExecutorParams(config: Config = defaultConfig(), jarPath: Option[String] = None)
 
@@ -62,12 +64,12 @@ object ClientExecutor extends Logging {
         // Complete the jobCompletePromise straight away if initialisation fails:
         coordinatorFuture.onFailure {
           case reason ⇒
-            log.info(s"Future failed to complete request $jobRequest. Error: ${reason.getMessage}")
+            logger.info(s"Future failed to complete request $jobRequest. Error: ${reason.getMessage}")
             jobCompletePromise.failure(reason)
         }
         jobCompletePromise.future.map {
           case any ⇒
-            log.info(s"Future complete request $jobRequest. Return value: $any")
+            logger.info(s"Future complete request $jobRequest. Return value: $any")
             any.asInstanceOf[A]
         }
       }
@@ -76,7 +78,7 @@ object ClientExecutor extends Logging {
         coordinatorFuture.foreach(coordinator ⇒ coordinator ! ShutDown)
         Await.result(coordinatorFuture, 10.seconds)
         // give it 20 seconds to try to shut down the Client and Server, then just terminate the actorSystem
-        log.info(s"ActorSystem '$actorSystemName' shutting down...")
+        logger.info(s"ActorSystem '$actorSystemName' shutting down...")
         actorSystem.shutdown()
       }
     }
