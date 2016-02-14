@@ -4,13 +4,14 @@ import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{ DataFrame, SQLContext }
 import springnz.sparkplug.core.SparkOperation
+import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 
-object TestExtensions {
+object TestExtensions extends Logging {
 
   private def persistTestResource[A: ClassTag](rdd: RDD[A], rddName: String, overwrite: Boolean = false)(
-    implicit projectName: ProjectName, log: Logger): RDD[A] = {
+    implicit projectName: ProjectName): RDD[A] = {
     val path = RDDPersister.getPath(projectName.name, rddName)
     if (overwrite || (!overwrite && !path.exists)) {
       if (path.exists) {
@@ -28,7 +29,7 @@ object TestExtensions {
     import RDDSamplers._
 
     def saveTo(rddName: String, sampler: RDD[A] ⇒ RDD[A] = identitySampler)(
-      implicit projectName: ProjectName, log: Logger): SparkOperation[RDD[A]] =
+      implicit projectName: ProjectName): SparkOperation[RDD[A]] =
       operation.map {
         rdd ⇒
           val sampled = sampler(rdd)
@@ -37,7 +38,7 @@ object TestExtensions {
       }
 
     def sourceFrom(rddName: String, sampler: RDD[A] ⇒ RDD[A] = identitySampler)(
-      implicit projectName: ProjectName, log: Logger): SparkOperation[RDD[A]] =
+      implicit projectName: ProjectName): SparkOperation[RDD[A]] =
       SparkOperation { ctx ⇒
         val path = RDDPersister.getPath(projectName.name, rddName)
         if (path.exists)
@@ -57,7 +58,7 @@ object TestExtensions {
     def saveTo(rddName: String,
       overwrite: Boolean = false,
       sampler: RDD[String] ⇒ RDD[String] = identitySampler)(
-        implicit projectName: ProjectName, log: Logger): SparkOperation[DataFrame] =
+        implicit projectName: ProjectName): SparkOperation[DataFrame] =
       operation.map {
         df ⇒
           val rdd: RDD[String] = df.toJSON
