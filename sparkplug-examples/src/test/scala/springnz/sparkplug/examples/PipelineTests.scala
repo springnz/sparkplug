@@ -2,7 +2,7 @@ package springnz.sparkplug.examples
 
 import org.scalatest._
 import springnz.sparkplug.testkit.CassandraTestContext
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 /**
   * Created by stephen on 9/11/15.

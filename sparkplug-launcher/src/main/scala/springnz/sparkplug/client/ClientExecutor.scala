@@ -1,10 +1,9 @@
 package springnz.sparkplug.client
 
-import akka.actor.TypedActor.PreStart
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.util.{ Pimpers, Logging }
+import springnz.sparkplug.util.{ Pimpers, Logging }
 
 import scala.concurrent._
 import scala.concurrent.duration._

@@ -1,12 +1,12 @@
 package springnz.sparkplug.executor
 
 import akka.actor._
-import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
-import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess }
-import springnz.sparkplug.core.{ SparkOperation, SparkPlugin }
-import springnz.util.{ Logging, Pimpers }
 import org.apache.spark.SparkContext
 import org.apache.spark.scheduler.SparkListener
+import springnz.sparkplug.core.SparkPlugin
+import springnz.sparkplug.executor.InternalMessageTypes.RoutedRequest
+import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess }
+import springnz.sparkplug.util.Logging
 
 import scala.concurrent.Future
 import scala.util._

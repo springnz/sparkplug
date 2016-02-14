@@ -3,7 +3,7 @@ package springnz.sparkplug
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{ ShouldMatchers, WordSpec }
 import springnz.sparkplug.testkit.RDDSamplers
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 class RDDSamplerTest extends WordSpec with ShouldMatchers with PropertyChecks with Logging {
 

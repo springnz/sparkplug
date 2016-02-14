@@ -4,7 +4,7 @@ import com.metreta.spark.orientdb.connector._
 import com.orientechnologies.orient.core.record.impl.ODocument
 import org.apache.spark.rdd.RDD
 import springnz.sparkplug.core.SparkOperation
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 

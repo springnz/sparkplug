@@ -5,7 +5,7 @@ import springnz.sparkplug.core.SparkPimpers._
 import springnz.sparkplug.core._
 import springnz.sparkplug.examples.CassandraConstants._
 import springnz.sparkplug.examples.WeatherDataTypes._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object WeatherDataJoin extends LocalExecutable("WeatherDataJoin") with WeatherDataJoinPipeline {
   def main(args: Array[String]): Unit = {

@@ -1,10 +1,11 @@
 package springnz.sparkplug.executor
 
+import java.time.LocalDate
+
 import akka.actor._
 import com.typesafe.config.ConfigFactory
-import org.joda.time.DateTime
 import springnz.sparkplug.core._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scala.util.{ Properties, Try }
 
@@ -24,7 +25,7 @@ object ExecutorService extends Logging {
     val appName = args(0)
     val sparkClientPath = args(1)
 
-    log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${DateTime.now()}")
+    log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${LocalDate.now()}")
 
     val executorConfig = ConfigFactory.load().getConfig(defaultConfigSectionName)
     val system = ActorSystem(actorSystemName, executorConfig)

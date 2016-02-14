@@ -5,8 +5,8 @@ import org.apache.spark.rdd.RDD
 import scala.reflect.ClassTag
 
 // TODO: test these classes
-object CoreExtensions {
-  implicit class SparkRDDOps[A: ClassTag](operation: SparkOperation[RDD[A]]) {
+object CoreExtensionOps {
+  class SparkRDDOps[A: ClassTag](operation: SparkOperation[RDD[A]]) {
     def mapRDD[B: ClassTag](f: A ⇒ B) = operation.map {
       rdd ⇒ rdd map f
     }

@@ -20,7 +20,7 @@ class CoordinatorCleanupTests(_system: ActorSystem)
     "successfuly execute a job request" in {
       val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
       coordinator ! request
-      expectMsgType[JobSuccess](30 second)
+      expectMsgType[JobSuccess](30.seconds)
     }
 
     // TODO: work out a way to kill off the broker to test DeathWatch

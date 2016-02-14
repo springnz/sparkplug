@@ -8,7 +8,7 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import springnz.sparkplug.client.Constants._
 import springnz.sparkplug.client.Coordinator.JobRequestWithPromise
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scala.concurrent._
 import scala.util.{ Failure, Try, Success }

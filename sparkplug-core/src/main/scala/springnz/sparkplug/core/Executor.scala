@@ -1,8 +1,9 @@
 package springnz.sparkplug.core
 
 import org.apache.spark.SparkContext
-import springnz.util.Logging
-import springnz.util.Pimpers._
+import springnz.sparkplug.util.{ Pimpers, Logging }
+import Pimpers._
+import springnz.sparkplug.util.Logging
 
 import scala.util.Try
 

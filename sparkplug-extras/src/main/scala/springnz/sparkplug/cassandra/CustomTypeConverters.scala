@@ -4,8 +4,8 @@ import java.time.{ LocalDate, LocalDateTime }
 import java.util.Date
 
 import com.datastax.spark.connector.types._
-import springnz.util.Logging
-import springnz.util.Pimpers._
+import springnz.sparkplug.util.DatePimpers._
+import springnz.sparkplug.util.Logging
 
 import scala.reflect.runtime.universe._
 

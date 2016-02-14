@@ -2,14 +2,14 @@
 //
 //import org.apache.spark.rdd.RDD
 //import springnz.sparkplug.core.SparkOperation
-//import springnz.util.Logging
+//import springnz.sparkplug.core.Logging
 //
 //import scala.util.Try
 //
 //object OrientDBExporter extends Logging {
 //
 //  import com.metreta.spark.orientdb.connector._
-//  import springnz.util.Pimpers._
+//  import springnz.sparkplug.core.Pimpers._
 //
 //  case class OrientExportResult[A](rdd: RDD[A], result: Try[Unit])
 //

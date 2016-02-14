@@ -2,7 +2,7 @@ package springnz.sparkplug.testkit
 
 import better.files._
 import org.apache.spark.rdd.RDD
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object RDDPersister extends Logging {
 

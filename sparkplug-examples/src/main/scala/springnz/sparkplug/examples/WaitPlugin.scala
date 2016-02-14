@@ -1,7 +1,7 @@
 package springnz.sparkplug.examples
 
 import springnz.sparkplug.core.{ SparkOperation, SparkPlugin }
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 import scala.concurrent._
 
 class WaitPlugin extends SparkPlugin with Logging {

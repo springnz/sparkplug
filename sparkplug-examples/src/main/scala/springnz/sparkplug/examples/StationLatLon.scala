@@ -4,7 +4,7 @@ import org.apache.spark.rdd.RDD
 import springnz.sparkplug.cassandra.CassandraRDDFetcher
 import springnz.sparkplug.core._
 import springnz.sparkplug.examples.WeatherDataTypes.StationData
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object StationLatLon extends LocalExecutable("StationLatLon") {
   def main(args: Array[String]): Unit = {

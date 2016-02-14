@@ -2,10 +2,10 @@ package springnz.sparkplug.examples
 
 import org.scalatest.{ ShouldMatchers, WordSpec }
 import springnz.sparkplug.testkit.CassandraTestContext
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 class WeatherTests extends WordSpec with ShouldMatchers with Logging {
-  import springnz.sparkplug.testkit.TestExtensions._
+  import springnz.sparkplug.testkit._
 
   "RawWeatherCount" should {
     "return success with the number of rows" in new CassandraTestContext("RawWeatherCount") {

@@ -4,7 +4,7 @@ import org.apache.spark.SparkContext
 import org.scalatest.{ ShouldMatchers, WordSpec }
 import springnz.sparkplug.core.SparkOperation._
 import springnz.sparkplug.core._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scalaz.syntax.bind._
 

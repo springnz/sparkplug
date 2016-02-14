@@ -6,7 +6,7 @@ import com.datastax.spark.connector.rdd.reader.RowReaderFactory
 import org.apache.spark.rdd.RDD
 import springnz.sparkplug.cassandra.CassandraTypes.{ KeySpace, Table }
 import springnz.sparkplug.core.SparkOperation
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 

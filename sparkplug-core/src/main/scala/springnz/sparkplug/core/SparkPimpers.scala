@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 
 object SparkPimpers {
 
-  implicit class RDDPimper[A: ClassTag](rdd: RDD[A]) {
+  class RDDPimperOps[A: ClassTag](rdd: RDD[A]) {
     def mapPartial[B: ClassTag](defaultValue: ⇒ B)(f: PartialFunction[A, B]): RDD[B] = {
       rdd.map {
         a ⇒ if (f.isDefinedAt(a)) f(a) else defaultValue
@@ -27,11 +27,8 @@ object SparkPimpers {
     }
   }
 
-  implicit class RDDOption[A: ClassTag](rdd: RDD[Option[A]]) {
-  }
-
   // Converts RDDs to Types that can be verified in test assertions
-  implicit class TestResultConverter[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
+  class RDDResultConverterOps[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
     def count = {
       operation.map { rdd ⇒
         val n = rdd.count

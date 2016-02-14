@@ -24,7 +24,7 @@ object TestExtensions {
     }
   }
 
-  implicit class SparkRDDOps[A: ClassTag](operation: SparkOperation[RDD[A]]) {
+  class SparkRDDOps[A: ClassTag](operation: SparkOperation[RDD[A]]) {
     import RDDSamplers._
 
     def saveTo(rddName: String, sampler: RDD[A] ⇒ RDD[A] = identitySampler)(
@@ -51,7 +51,7 @@ object TestExtensions {
       }
   }
 
-  implicit class SparkDFOps(operation: SparkOperation[DataFrame]) {
+  class SparkDFOps(operation: SparkOperation[DataFrame]) {
     import RDDSamplers._
 
     def saveTo(rddName: String,

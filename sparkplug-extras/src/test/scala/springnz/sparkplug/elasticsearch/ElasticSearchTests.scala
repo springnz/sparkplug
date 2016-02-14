@@ -10,7 +10,7 @@ import springnz.elasticsearch.server.{ ESServer, ESServerParams }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.{ ESExportDetails, ESExporterParams }
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.util.{ Json4sUtil, Logging }
+import springnz.sparkplug.util.{ Logging, Json4sUtil }
 
 import scala.util.{ Success, Try }
 
