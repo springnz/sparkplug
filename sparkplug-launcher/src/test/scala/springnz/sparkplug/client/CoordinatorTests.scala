@@ -23,23 +23,23 @@ class CoordinatorTests(_system: ActorSystem)
     "successfuly execute a job request" in {
       val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
       coordinator ! request
-      expectMsg[JobSuccess](30 seconds, JobSuccess(request, (2, 2)))
+      expectMsg[JobSuccess](30.seconds, JobSuccess(request, (2, 2)))
     }
 
     "successfuly execute a job request after a failure" in {
       val invalidRequest = JobRequest("springnz.sparkplug.examples.InvalidClass", None)
       coordinator ! invalidRequest
-      expectMsgType[JobFailure](30 seconds)
+      expectMsgType[JobFailure](30.seconds)
       val goodRequest = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
       coordinator ! goodRequest
-      expectMsg[JobSuccess](30 seconds, JobSuccess(goodRequest, (2, 2)))
+      expectMsg[JobSuccess](30.seconds, JobSuccess(goodRequest, (2, 2)))
     }
 
     "work with the ask pattern as well" in {
-      implicit val timeout = Timeout(30 seconds)
+      implicit val timeout = Timeout(30.seconds)
       val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
       val replyFuture = coordinator ? request
-      val result = Await.result(replyFuture, 30 seconds)
+      val result = Await.result(replyFuture, 30.seconds)
       result shouldBe JobSuccess(request, (2, 2))
     }
 

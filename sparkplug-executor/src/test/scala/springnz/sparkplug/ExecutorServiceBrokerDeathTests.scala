@@ -25,10 +25,10 @@ class ExecutorServiceBrokerDeathTests(_system: ActorSystem)
     val requestBroker = system.actorSelection(s"/user/testBroker1")
     // give it something to do for a while
     val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
-    Await.ready(readyPromise.future, 3 seconds)
+    Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
-    expectMsg(3 seconds, ServerReady)
-    expectMsgType[JobSuccess](3 second)
+    expectMsg(3.seconds, ServerReady)
+    expectMsgType[JobSuccess](3.second)
   }
 
   // TODO: make it so this doesn't have to be the last test
@@ -36,10 +36,10 @@ class ExecutorServiceBrokerDeathTests(_system: ActorSystem)
     val requestBroker = system.actorSelection(s"/user/testBroker2")
     // give it something to do for a while
     val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
-    Await.ready(readyPromise.future, 3 seconds)
+    Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
     clientActor ! PoisonPill
-    expectMsg(3 seconds, ServerReady)
-    expectNoMsg(3 second)
+    expectMsg(3.seconds, ServerReady)
+    expectNoMsg(3.second)
   }
 }

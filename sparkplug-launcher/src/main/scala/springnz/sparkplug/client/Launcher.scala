@@ -4,8 +4,8 @@ import java.net.InetAddress
 
 import better.files._
 import com.typesafe.config.ConfigFactory
-import springnz.util.{ BuilderOps, Pimpers, Logging }
 import org.apache.spark.launcher.SparkLauncher
+import springnz.sparkplug.util.{ Pimpers, Logging, BuilderOps }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -13,6 +13,7 @@ import scala.util.{ Properties, Try }
 
 object Launcher extends Logging {
   import Pimpers._
+  import BuilderOps._
 
   val config = ConfigFactory.load().getConfig("sparkPlugClient.spark.conf")
 
@@ -51,8 +52,6 @@ object Launcher extends Logging {
       throw new RuntimeException("If 'SPARK_MASTER' is not set to local, 'SPARK_HOME' must be set.")
 
     val appName = mainClass.split('.').last
-
-    import BuilderOps._
 
     val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.pathAsString }
 

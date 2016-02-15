@@ -3,7 +3,7 @@ package springnz.sparkplug.elasticsearch
 import org.apache.spark.rdd.RDD
 import org.elasticsearch.spark._
 import springnz.sparkplug.core._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object ESJsonRDDSource
     extends Logging {

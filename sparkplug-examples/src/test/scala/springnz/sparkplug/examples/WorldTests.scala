@@ -3,7 +3,7 @@ package springnz.sparkplug.examples
 import org.scalatest._
 import springnz.sparkplug.examples.WorldDataTypes.Country
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 /**
   * Created by stephen on 9/11/15.

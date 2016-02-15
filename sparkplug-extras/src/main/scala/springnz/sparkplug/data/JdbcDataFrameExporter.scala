@@ -5,8 +5,9 @@ package springnz.sparkplug.data
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.{ DataFrame, SaveMode }
 import springnz.sparkplug.core.SparkOperation
-import springnz.util.Logging
-import springnz.util.Pimpers._
+import springnz.sparkplug.util.{ Pimpers, Logging }
+import Pimpers._
+import springnz.sparkplug.util.Logging
 
 import scala.util.Try
 

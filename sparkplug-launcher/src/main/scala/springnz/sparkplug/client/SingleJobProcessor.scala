@@ -4,7 +4,7 @@ import akka.actor.TypedActor.PreStart
 import akka.actor._
 import springnz.sparkplug.core.SparkPlugException
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 import scala.concurrent._
 

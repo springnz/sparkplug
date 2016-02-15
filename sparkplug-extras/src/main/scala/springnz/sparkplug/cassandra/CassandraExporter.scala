@@ -6,8 +6,9 @@ import com.datastax.spark.connector.writer.RowWriterFactory
 import springnz.sparkplug.core.SparkOperation
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import springnz.util.Logging
-import springnz.util.Pimpers._
+import springnz.sparkplug.util.{ Pimpers, Logging }
+import Pimpers._
+import springnz.sparkplug.util.Logging
 
 import scala.util.Try
 import scalaz.syntax.bind._

@@ -4,9 +4,9 @@ import springnz.sparkplug.core.SparkPlugin
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import springnz.sparkplug.core._
-import springnz.util.Logging
 
 import better.files._
+import springnz.sparkplug.util.Logging
 
 import scala.util.Try
 

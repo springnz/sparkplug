@@ -1,7 +1,7 @@
 package springnz.sparkplug.examples
 
 import org.apache.spark.{ SparkContext, SparkConf }
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object SimpleLetterCount extends Logging {
   def main(args: Array[String]) {

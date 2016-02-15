@@ -2,9 +2,8 @@ package springnz.sparkplug.data
 
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.{ DataFrame, SQLContext }
-
 import springnz.sparkplug.core.SparkOperation
-import springnz.util.{ Logging, Pimpers }
+import springnz.sparkplug.util.{ Pimpers, Logging }
 
 object JdbcDataFrameSource extends Logging {
   import Pimpers._

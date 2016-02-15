@@ -5,7 +5,7 @@ import springnz.sparkplug.cassandra.CassandraRDDFetcher
 import springnz.sparkplug.core._
 import springnz.sparkplug.examples.CassandraConstants._
 import springnz.sparkplug.examples.WeatherDataTypes.RawWeatherData
-import springnz.util.Logging
+import springnz.sparkplug.util.Logging
 
 object SimplePipelineExample extends LocalExecutable("SimpleDIExample") with SimplePipeline with Logging {
   def main(args: Array[String]): Unit = {

@@ -1,14 +1,14 @@
 package springnz.sparkplug.examples
 
 import org.scalatest.{ ShouldMatchers, WordSpec }
-import springnz.sparkplug.testkit.CassandraTestContext
-import springnz.util.Logging
+import springnz.sparkplug.testkit.SimpleTestContext
+import springnz.sparkplug.util.Logging
 
 class WeatherTests extends WordSpec with ShouldMatchers with Logging {
-  import springnz.sparkplug.testkit.TestExtensions._
+  import springnz.sparkplug.testkit._
 
   "RawWeatherCount" should {
-    "return success with the number of rows" in new CassandraTestContext("RawWeatherCount") {
+    "return success with the number of rows" in new SimpleTestContext("RawWeatherCount") {
 
       val rowCountResult = execute((new SimpleNonDIExample() {
         override def weatherDataSource = super.weatherDataSource.sourceFrom("RawWeatherData")
@@ -19,7 +19,7 @@ class WeatherTests extends WordSpec with ShouldMatchers with Logging {
 
   // This test case uses the MacWire DI framework to create and wire the dependencies
   "RawWeatherEvents" should {
-    "return success with the first 10 URLs in alphabetical order" in new CassandraTestContext("RawWeatherEvents") with SimplePipeline {
+    "return success with the first 10 URLs in alphabetical order" in new SimpleTestContext("RawWeatherEvents") with SimplePipeline {
       override lazy val weatherDataSource = super.weatherDataSource.sourceFrom("RawWeatherData")
       val rowCountResult = execute(dIExample)
       val rows = rowCountResult.get
@@ -29,7 +29,7 @@ class WeatherTests extends WordSpec with ShouldMatchers with Logging {
   }
 
   "StationLatLon" should {
-    "return an RDD with all the solver lat/longs" in new CassandraTestContext("StationLatLon") {
+    "return an RDD with all the solver lat/longs" in new SimpleTestContext("StationLatLon") {
       val latLongOperation = (new StationLatLon {
         override def stationDataSource = super.stationDataSource.sourceFrom("StationData")
       })()

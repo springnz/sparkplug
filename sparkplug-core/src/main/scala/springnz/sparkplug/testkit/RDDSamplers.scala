@@ -2,15 +2,14 @@ package springnz.sparkplug.testkit
 
 import java.lang.Math._
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.partial.{ BoundedDouble, PartialResult }
 import org.apache.spark.rdd.RDD
-
 import springnz.sparkplug.util.SerializeUtils
-import springnz.util.Logging
 
 import scala.reflect.ClassTag
 
-object RDDSamplers extends Logging {
+object RDDSamplers extends LazyLogging {
   def identitySampler[A: ClassTag](rdd: RDD[A]): RDD[A] = rdd
 
   def shrinkingSampler[A: ClassTag](sampleParams: RDDShrinkingSamplerParams = sourceRDDParams)(rdd: RDD[A]): RDD[A] =
@@ -74,10 +73,10 @@ object RDDSamplers extends Logging {
     }
 
     if (params.scaleParam == 1.0 && params.scalePower == 1.0) {
-      log.info("Not sampling RDD since scaleParam==scalePower==1.0")
+      logger.info("Not sampling RDD since scaleParam==scalePower==1.0")
       rdd
     } else {
-      log.info(s"Sampling RDD with $params ...")
+      logger.info(s"Sampling RDD with $params ...")
       getSample(params)
     }
   }
