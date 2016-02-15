@@ -15,8 +15,8 @@ package object core {
 
   implicit def rddPimper[A: ClassTag](rdd: RDD[A]) = new RDDPimperOps[A](rdd)
 
-  implicit def resultConverter[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) =
+  implicit def resultConverter[A: ClassTag](operation: SparkOperation[RDD[A]]) =
     new RDDResultConverterOps(operation: SparkOperation[RDD[A]])
 
-  implicit def rddPimper[A: ClassTag](operation: SparkOperation[RDD[A]]) = new SparkRDDOps(operation)
+  implicit def operationPimper[A: ClassTag](operation: SparkOperation[RDD[A]]) = new SparkRDDOps(operation)
 }

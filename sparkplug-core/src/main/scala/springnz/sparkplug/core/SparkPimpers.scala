@@ -2,6 +2,7 @@ package springnz.sparkplug.core
 
 import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
+import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 
@@ -28,7 +29,7 @@ object SparkPimpers {
   }
 
   // Converts RDDs to Types that can be verified in test assertions
-  class RDDResultConverterOps[A: ClassTag](operation: SparkOperation[RDD[A]])(implicit log: Logger) {
+  class RDDResultConverterOps[A: ClassTag](operation: SparkOperation[RDD[A]]) extends Logging {
     def count = {
       operation.map { rdd ⇒
         val n = rdd.count
