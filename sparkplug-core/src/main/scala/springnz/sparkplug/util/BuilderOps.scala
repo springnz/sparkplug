@@ -6,8 +6,5 @@ private[sparkplug] object BuilderOps {
       case None             ⇒ builder
       case Some(innerValue) ⇒ setMethod(builder, innerValue)
     }
-
-    def setIfNonEmpty(value: String, setMethod: (A, String) ⇒ A) =
-      if (value.isEmpty) builder else setMethod(builder, value)
   }
 }

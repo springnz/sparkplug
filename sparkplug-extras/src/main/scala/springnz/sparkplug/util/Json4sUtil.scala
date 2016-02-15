@@ -56,11 +56,6 @@ private[sparkplug] object Json4sUtil {
         case _              ⇒ None
       }
 
-    // not working until we upgrade to latest json4s
-    //    def toMap: Map[String, Any] = {
-    //      jValue.extract[Map[String, Any]]
-    //    }
-
     // depth = -1 means no limits on recursion depth
     def toMap(depth: Int = -1): Any = {
 

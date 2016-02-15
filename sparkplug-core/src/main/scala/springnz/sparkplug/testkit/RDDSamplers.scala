@@ -5,8 +5,7 @@ import java.lang.Math._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.partial.{ BoundedDouble, PartialResult }
 import org.apache.spark.rdd.RDD
-
-import springnz.sparkplug.util.{ Logging, SerializeUtils }
+import springnz.sparkplug.util.SerializeUtils
 
 import scala.reflect.ClassTag
 
