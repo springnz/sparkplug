@@ -1,35 +1,20 @@
 package springnz.sparkplug.core
 
-import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
 import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 
-object SparkPimpers {
-
-  class RDDPimperOps[A: ClassTag](rdd: RDD[A]) {
-    def mapPartial[B: ClassTag](defaultValue: ⇒ B)(f: PartialFunction[A, B]): RDD[B] = {
-      rdd.map {
-        a ⇒ if (f.isDefinedAt(a)) f(a) else defaultValue
-      }
+object SparkOperationPimpers extends Logging {
+  class SparkOperationExtensions[A: ClassTag](operation: SparkOperation[RDD[A]]) {
+    def mapRDD[B: ClassTag](f: A ⇒ B) = operation.map {
+      rdd ⇒ rdd map f
     }
 
-    def mapWithFilter[B: ClassTag](f: A ⇒ Option[B]): RDD[B] = {
-      rdd.map(f).filter(_.isDefined)
-        .map(_.get)
+    def filterRDD(f: A ⇒ Boolean) = operation.map {
+      rdd ⇒ rdd filter f
     }
 
-    def mapPartialWithFilter[B: ClassTag](f: PartialFunction[A, Option[B]]): RDD[B] = {
-      rdd.map {
-        a ⇒ if (f.isDefinedAt(a)) f(a) else None
-      }.filter(_.isDefined)
-        .map(_.get)
-    }
-  }
-
-  // Converts RDDs to Types that can be verified in test assertions
-  class RDDResultConverterOps[A: ClassTag](operation: SparkOperation[RDD[A]]) extends Logging {
     def count = {
       operation.map { rdd ⇒
         val n = rdd.count
@@ -86,6 +71,4 @@ object SparkPimpers {
       }
     }
   }
-
 }
-

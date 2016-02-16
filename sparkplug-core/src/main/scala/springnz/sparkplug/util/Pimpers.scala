@@ -2,10 +2,9 @@ package springnz.sparkplug.util
 
 import com.typesafe.scalalogging.Logger
 
-import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.implicitConversions
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Try }
 
 private[sparkplug] object Pimpers {
 

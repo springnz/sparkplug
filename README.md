@@ -257,7 +257,7 @@ Sparkplug provides utilities to make this easy. These take the form of a family 
 To enable them:
 
 ```scala
-import springnz.sparkplug.testkit.TestExtensions._
+import springnz.sparkplug.testkit.SparkOperationTestPimpers._
 ```
 
 In the test environment there are several use case cases that are dealt with:
