@@ -1,7 +1,6 @@
 package springnz.sparkplug.examples
 
 import springnz.sparkplug.cassandra.CassandraRDDFetcher
-import springnz.sparkplug.core.RDDPimpers._
 import springnz.sparkplug.core._
 import springnz.sparkplug.examples.CassandraConstants._
 import springnz.sparkplug.examples.WeatherDataTypes._
