@@ -8,7 +8,7 @@ import springnz.sparkplug.util.Logging
 
 import scala.reflect.ClassTag
 
-object TestExtensions extends LazyLogging {
+object SparkOperationTestPimpers extends LazyLogging {
 
   private def persistTestResource[A: ClassTag](rdd: RDD[A], rddName: String, overwrite: Boolean = false)(
     implicit projectName: ProjectName): RDD[A] = {
@@ -25,7 +25,7 @@ object TestExtensions extends LazyLogging {
     }
   }
 
-  class SparkRDDOps[A: ClassTag](operation: SparkOperation[RDD[A]]) {
+  class RDDExtensions[A: ClassTag](operation: SparkOperation[RDD[A]]) {
     import RDDSamplers._
 
     def saveTo(rddName: String, sampler: RDD[A] ⇒ RDD[A] = identitySampler)(
@@ -52,7 +52,7 @@ object TestExtensions extends LazyLogging {
       }
   }
 
-  class SparkDFOps(operation: SparkOperation[DataFrame]) {
+  class DataFrameExtensions(operation: SparkOperation[DataFrame]) {
     import RDDSamplers._
 
     def saveTo(rddName: String,

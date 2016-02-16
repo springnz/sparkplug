@@ -15,7 +15,7 @@ object WorldPipeline {
 
 }
 trait WorldPipeline {
-  import SparkPimpers._
+  import RDDPimpers._
   import WorldPipeline._
 
   def dataSource: SparkOperation[DataFrame] = JdbcDataFrameSource("world", "Country")
