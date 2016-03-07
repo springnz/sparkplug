@@ -4,6 +4,7 @@ import akka.actor.{ ActorRef, Props, ActorSystem }
 import akka.testkit.{ ImplicitSender, TestActorRef, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
+import springnz.sparkplug.examples.WaitPlugin
 import springnz.sparkplug.executor.MessageTypes.{ JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.duration._
@@ -18,7 +19,7 @@ class CoordinatorCleanupTests(_system: ActorSystem)
   "client coordinator" should {
 
     "successfuly execute a job request" in {
-      val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+      val request = JobRequest(() ⇒ new WaitPlugin)
       coordinator ! request
       expectMsgType[JobSuccess](30.seconds)
     }

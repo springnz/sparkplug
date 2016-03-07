@@ -28,7 +28,10 @@ object SparkOperation {
   }
 }
 
-trait SparkPlugin {
-  def apply(input: Option[Any]): SparkOperation[Any]
+abstract class SparkPlugin[A] {
+  /*
+   Apply is called on server. Use it to initialize the Spark Operation.
+   */
+  def apply(): SparkOperation[A]
 }
 

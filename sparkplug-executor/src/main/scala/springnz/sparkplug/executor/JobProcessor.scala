@@ -19,17 +19,15 @@ object JobProcessor {
 class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Logging {
 
   def executeJob(job: JobRequest, originator: ActorRef) = {
-    val factoryName = job.factoryClassName
-
     implicit val ec = context.dispatcher
     val f: Future[Any] = Future {
-      log.info(s"Loading and instantiating job '$factoryName'.")
-      val factoryAny = Class.forName(factoryName).newInstance()
-      val operation = factoryAny.asInstanceOf[SparkPlugin].apply(job.data)
+      log.info(s"Loading and instantiating job from factory.")
+      val plugin = job.factory()
+      val operation = plugin.apply()
 
-      log.info(s"Executing job '$factoryName'.")
+      log.info(s"Executing job '$plugin'.")
       val result = operation.run(sparkContext)
-      log.info(s"Job '$factoryName' finished.")
+      log.info(s"Job '$plugin' finished.")
 
       // TODO: do something about the SparkListener (not sure what)
       val listener = new SparkListener {}

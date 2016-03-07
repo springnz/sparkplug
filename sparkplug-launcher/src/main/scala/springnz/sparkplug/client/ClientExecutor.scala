@@ -3,15 +3,16 @@ package springnz.sparkplug.client
 import akka.actor._
 import com.typesafe.config.{ Config, ConfigFactory }
 import com.typesafe.scalalogging.LazyLogging
+import springnz.sparkplug.core.SparkPlugin
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.sparkplug.util.{ Pimpers, Logging }
+import springnz.sparkplug.util.Pimpers
 
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.Try
 
 trait ClientExecutor {
-  def execute[A](pluginClass: String, data: Option[Any]): Future[A]
+  def execute[A](pluginFactory: () ⇒ SparkPlugin[A]): Future[A]
   def shutDown(): Unit
 }
 
@@ -25,10 +26,10 @@ object ClientExecutor extends LazyLogging {
 
   def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
 
-  def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
+  def apply[A](pluginFactory: () ⇒ SparkPlugin[A], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
     val executor = create(params)
     executor
-      .execute(pluginClass, data)
+      .execute(pluginFactory)
       .andThen { case _ ⇒ executor.shutDown() }
   }
 
@@ -52,8 +53,8 @@ object ClientExecutor extends LazyLogging {
 
     new ClientExecutor {
 
-      override def execute[A](pluginClass: String, data: Option[Any]): Future[A] = {
-        val jobRequest = JobRequest(pluginClass, data)
+      override def execute[A](pluginFactory: () ⇒ SparkPlugin[A]): Future[A] = {
+        val jobRequest = JobRequest(pluginFactory)
         val jobCompletePromise = Promise[Any]()
         coordinatorFuture.foreach {
           coordinator ⇒

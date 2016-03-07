@@ -7,7 +7,7 @@ trait Executable {
 }
 
 class LocalExecutable(appName: String, sparkMaster: Option[String] = None) extends Executable {
-  override def executor = new SparkExecutor {
+  override def executor: SparkExecutor = new SparkExecutor {
     override val configurer: Configurer = new LocalConfigurer(appName, sparkMaster)
   }
 }

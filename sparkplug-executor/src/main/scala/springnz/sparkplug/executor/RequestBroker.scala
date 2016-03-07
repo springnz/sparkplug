@@ -50,7 +50,7 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
 
   def receiveJobRequests(jobCount: Int, clientRef: Option[ActorRef], processorMap: Map[String, JobRequestInfo]): Receive = {
     case job: JobRequest ⇒
-      log.info(s"Creating new jobProcessor for '${job.factoryClassName}'.")
+      log.info(s"Creating new jobProcessor for '${job.factory.toString()}'.")
       val processor = context.actorOf(JobProcessor.props, s"jobProcessor-$jobCount")
       context.become(receiveJobRequests(jobCount + 1, clientRef, processorMap.updated(processor.path.toString, (sender, job))))
       context.watch(processor)

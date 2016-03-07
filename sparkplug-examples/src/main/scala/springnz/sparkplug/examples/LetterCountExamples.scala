@@ -1,11 +1,9 @@
 package springnz.sparkplug.examples
 
-import springnz.sparkplug.core.SparkPlugin
 import org.apache.spark.rdd.RDD
 import org.joda.time.DateTime
 import springnz.sparkplug.core._
 
-import better.files._
 import springnz.sparkplug.util.Logging
 
 import scala.util.Try
@@ -18,8 +16,9 @@ object LetterCount extends LocalExecutable("LetterCount") with Logging {
   }
 }
 
-class LetterCountPlugin extends LetterCount with SparkPlugin {
-  override def apply(input: Option[Any]): SparkOperation[(Long, Long)] = super.apply()
+class LetterCountPlugin extends SparkPlugin[(Long, Long)] {
+  val lc = new LetterCount()
+  override def apply(): SparkOperation[(Long, Long)] = lc()
 }
 
 class LetterCount extends Logging {
