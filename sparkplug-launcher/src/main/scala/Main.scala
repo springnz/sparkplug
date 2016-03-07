@@ -1,3 +1,4 @@
+/*
 import springnz.sparkplug.client.ClientExecutor
 import springnz.sparkplug.examples.LetterCountPlugin
 
@@ -19,3 +20,4 @@ object Main {
     executor.shutDown()
   }
 }
+*/
