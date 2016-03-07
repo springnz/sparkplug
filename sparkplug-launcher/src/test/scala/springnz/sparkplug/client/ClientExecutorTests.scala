@@ -30,7 +30,7 @@ trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
 class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with ClientExecutableFixture with Inspectors {
   implicit val ec = scala.concurrent.ExecutionContext.global
 
-  "client executor" should {
+  "client executor" ignore {
     "Calculate a single job" in {
       val future = executor.execute(() ⇒ new LetterCountPlugin)
       val result = Await.result(future, 30.seconds)
