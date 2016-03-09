@@ -30,7 +30,7 @@ trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
 class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with ClientExecutableFixture with Inspectors {
   implicit val ec = scala.concurrent.ExecutionContext.global
 
-  "client executor" ignore {
+  "client executor" should {
     "Calculate a single job" in {
       val future = executor.execute(() ⇒ new LetterCountPlugin)
       val result = Await.result(future, 30.seconds)
@@ -84,7 +84,21 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
 
 class ClientExecutorSingleTests extends WordSpec with ShouldMatchers with Logging {
   "client executor" should {
-    "Calculate a single job" in {
+    "what" in {
+      val executor = ClientExecutor.create()
+
+      val v = new WaitPlugin()
+      val futures = List.fill(3) {
+        executor.execute(() ⇒ new LetterCountPlugin())
+      }
+
+      implicit val ec = scala.concurrent.ExecutionContext.global
+      val sequence = Future.sequence(futures)
+      val r = Await.result(sequence, 20.seconds)
+      println(r)
+    }
+
+    "Calculate a single job" ignore {
       implicit val ec = scala.concurrent.ExecutionContext.global
       val future = ClientExecutor(() ⇒ new LetterCountPlugin())
       val result = Await.result(future, 30.seconds)

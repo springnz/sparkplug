@@ -17,7 +17,6 @@ object JobProcessor {
 }
 
 class JobProcessor(implicit sparkContext: SparkContext) extends Actor with Logging {
-
   def executeJob(job: JobRequest, originator: ActorRef) = {
     implicit val ec = context.dispatcher
     val f: Future[Any] = Future {
