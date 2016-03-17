@@ -72,7 +72,7 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
           self ! ShutDown
         }
       }
-      processorMap.get(terminatedRef.path.toString).map {
+      processorMap.get(terminatedRef.path.toString).foreach {
         case (requestor, job) ⇒
           val message = s"Processor '${self.path.toString}' terminated (or timed out) for job $job."
           log.error(message)
