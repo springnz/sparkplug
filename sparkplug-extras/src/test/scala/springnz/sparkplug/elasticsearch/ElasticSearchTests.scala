@@ -52,7 +52,7 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
 
       val mappedResult: SparkOperation[(RDD[Map[String, Any]], Try[ESExportDetails])] = for {
         rdd ← operation
-        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = Some(port)))(rdd)
+        exportOp ← ESExporter[String, Any]("estestindex", "estesttype", ESExporterParams(port = Some(port), idField = "guid"))(rdd)
       } yield exportOp
 
       val verify = SparkOperation { ctx ⇒
@@ -78,7 +78,7 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
         case (_, output) ⇒ parse(output).toMap().asInstanceOf[Map[String, Any]]
       }
 
-      verifiedJson.map(_.size).head shouldBe 22
+      verifiedJson.map(_.size).head shouldBe 21
       val names = verifiedJson.map(_("name"))
       names.toSet shouldBe Set("Griffin Cole", "Puckett Chen", "Maritza Yang", "Joy Shepherd", "Contreras Sampson")
     }
@@ -93,7 +93,6 @@ object ESExporterTest {
       |
       |[
       |  {
-      |    "_id": "563a70dd7cfb22145da145c1",
       |    "index": 0,
       |    "guid": "4662b3a0-2217-4208-bc7a-e9abfb2f80e1",
       |    "isActive": false,
@@ -138,7 +137,6 @@ object ESExporterTest {
       |    "favoriteFruit": "banana"
       |  },
       |  {
-      |    "_id": "563a70ddbebdba103e572407",
       |    "index": 1,
       |    "guid": "fc023297-07cd-4f84-aaab-8c7ee28138c5",
       |    "isActive": true,
@@ -183,7 +181,6 @@ object ESExporterTest {
       |    "favoriteFruit": "apple"
       |  },
       |  {
-      |    "_id": "563a70dd8baaec94c29aabfc",
       |    "index": 2,
       |    "guid": "c2a2eb91-031e-448f-85d2-8c6e0f9ce472",
       |    "isActive": true,
@@ -228,7 +225,6 @@ object ESExporterTest {
       |    "favoriteFruit": "apple"
       |  },
       |  {
-      |    "_id": "563a70dd13b75507ea688c3b",
       |    "index": 3,
       |    "guid": "fdb3aab7-51b0-436b-a369-7a396156d22c",
       |    "isActive": true,
@@ -273,7 +269,6 @@ object ESExporterTest {
       |    "favoriteFruit": "apple"
       |  },
       |  {
-      |    "_id": "563a70ddbb93c25fa092e1ff",
       |    "index": 4,
       |    "guid": "e039170f-4d8d-42dd-a8b1-ab792b6f3f96",
       |    "isActive": true,

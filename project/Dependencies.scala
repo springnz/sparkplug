@@ -5,16 +5,16 @@ object Dependencies {
   // Version Numbers
   val sparkVersion = "1.5.1"
   val akkaVersion = "2.3.12"
-  val elasticsearchLibVersion = "0.1.2-SNAPSHOT"
+  val elasticsearchLibVersion = "0.1.2"
   val orientDBMigrationsVersion = "2.7.0"
-  val sparkOrientConnectorVersion = "1.5.0-SNAPSHOT"
+  val sparkOrientConnectorVersion = "1.5.0"
 
   val cassandraConnectorVersionMap = Map(
-    "1.5.1" -> "1.5.0-RC1",
+    "1.5.1" -> "1.5.0",
     "1.4.1" -> "1.4.0")
 
   val elasticSearchSparkVersionMap = Map(
-    "1.5.1" -> "2.2.0-rc1",
+    "1.5.1" -> "2.2.0",
     "1.4.1" -> "2.2.0-m1")
 
   // Spark
