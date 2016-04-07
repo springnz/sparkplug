@@ -3,12 +3,11 @@ package springnz.sparkplug.cassandra
 import java.time.{ LocalDate, LocalDateTime }
 
 import com.datastax.spark.connector._
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.rdd.RDD
 import org.scalatest._
-import springnz.sparkplug.core.SparkOperation
+import springnz.sparkplug.core.{ ConfigEnvironment, SparkOperation }
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.sparkplug.util.{ Logging, DateTimeUtil }
+import springnz.sparkplug.util.{ DateTimeUtil, Logging }
 
 case class TestRow(id: Int, localDate: LocalDate, localDateTime: LocalDateTime)
 
@@ -19,7 +18,7 @@ class CassandraExporterTest extends WordSpec with ShouldMatchers with Logging {
     "handle Java 8 timestamps and select rows with a given LocalDate" ignore new SimpleTestContext("CassandraExporterTest") {
       import DateTimeUtil._
 
-      val keySpace = ConfigFactory.load().getString("cassandra.test-keyspace")
+      val keySpace = ConfigEnvironment.config.getString("cassandra.test-keyspace")
       val table = "cassandra_exporter_test"
 
       val createQuery =

@@ -1,10 +1,11 @@
 package springnz.sparkplug.client
 
 import akka.actor._
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes._
-import springnz.sparkplug.util.{ Pimpers, Logging }
+import springnz.sparkplug.util.Pimpers
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -23,7 +24,7 @@ object ClientExecutor extends LazyLogging {
 
   case class ClientExecutorParams(config: Config = defaultConfig(), jarPath: Option[String] = None)
 
-  def defaultConfig() = ConfigFactory.load().getConfig(defaultConfigSectionName)
+  def defaultConfig() = ConfigEnvironment.config.getConfig(defaultConfigSectionName)
 
   def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
     val executor = create(params)

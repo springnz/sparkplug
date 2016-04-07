@@ -2,16 +2,16 @@ package springnz.sparkplug.client
 
 import akka.actor.TypedActor.PreStart
 import akka.actor._
-import better.files._
 import better.files.File._
-import com.typesafe.config.{ Config, ConfigFactory }
+import better.files._
+import com.typesafe.config.Config
 import springnz.sparkplug.client.Constants._
-import springnz.sparkplug.client.Coordinator.JobRequestWithPromise
+import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.util.Logging
 
 import scala.concurrent._
-import scala.util.{ Failure, Try, Success }
+import scala.util.{ Failure, Success, Try }
 
 object Coordinator {
   case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
@@ -23,14 +23,14 @@ object Coordinator {
     jarPath: Option[String] = None) = Props(new Coordinator(readyPromise, config, jarPath))
 
   def defaultConfig: Config = {
-    val config = ConfigFactory.load()
+    val config = ConfigEnvironment.config
     config.getConfig(defaultConfigSectionName)
   }
 }
 
 class Coordinator(readyPromise: Option[Promise[ActorRef]], config: Config, jarPath: Option[String]) extends Actor with PreStart with Logging {
-  import Coordinator._
   import Constants._
+  import Coordinator._
 
   override def preStart() = {
     val launchTry: Try[Future[Unit]] = Try {

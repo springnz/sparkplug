@@ -6,6 +6,7 @@ import akka.testkit.{ ImplicitSender, TestActorRef, TestKit }
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
+import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.Await
@@ -14,7 +15,7 @@ import scala.concurrent.duration._
 class CoordinatorTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
 
-  def this() = this(ActorSystem(Constants.actorSystemName, ConfigFactory.load().getConfig(Constants.defaultConfigSectionName)))
+  def this() = this(ActorSystem(Constants.actorSystemName, ConfigEnvironment.config.getConfig(Constants.defaultConfigSectionName)))
 
   var coordinator: ActorRef = null
 

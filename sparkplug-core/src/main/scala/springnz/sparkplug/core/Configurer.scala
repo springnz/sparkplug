@@ -29,7 +29,7 @@ trait MapConfigurer extends Configurer {
 class LocalConfigurer(applicationName: String, sparkMaster: Option[String] = None) extends MapConfigurer {
   import scala.collection.JavaConversions._
 
-  protected val appConfig = ConfigFactory.load()
+  protected val appConfig = ConfigEnvironment.config
 
   protected def appName = applicationName
 

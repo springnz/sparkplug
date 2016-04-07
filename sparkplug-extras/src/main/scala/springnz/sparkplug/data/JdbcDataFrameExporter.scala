@@ -2,18 +2,16 @@
 
 package springnz.sparkplug.data
 
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.{ DataFrame, SaveMode }
-import springnz.sparkplug.core.SparkOperation
-import springnz.sparkplug.util.{ Pimpers, Logging }
-import Pimpers._
-import springnz.sparkplug.util.Logging
+import springnz.sparkplug.core.{ ConfigEnvironment, SparkOperation }
+import springnz.sparkplug.util.{ Logging, Pimpers }
+import springnz.sparkplug.util.Pimpers._
 
 import scala.util.Try
 
 object JdbcDataFrameExporter extends Logging {
 
-  protected val config = ConfigFactory.load()
+  protected val config = ConfigEnvironment.config
 
   def export(dataBaseName: String, tableName: String, saveMode: SaveMode)(dataFrame: DataFrame): SparkOperation[(DataFrame, Try[Unit])] =
     SparkOperation { _ ⇒
