@@ -3,19 +3,19 @@ package springnz.sparkplug.client
 import java.net.InetAddress
 
 import better.files._
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.launcher.SparkLauncher
-import springnz.sparkplug.util.{ Pimpers, Logging, BuilderOps }
+import springnz.sparkplug.core.ConfigEnvironment
+import springnz.sparkplug.util.{ BuilderOps, Logging, Pimpers }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{ Properties, Try }
 
 object Launcher extends Logging {
-  import Pimpers._
   import BuilderOps._
+  import Pimpers._
 
-  val config = ConfigFactory.load().getConfig("sparkPlugClient.spark.conf")
+  val config = ConfigEnvironment.config.getConfig("sparkPlugClient.spark.conf")
 
   def startProcess(launcher: SparkLauncher): Future[Unit] = {
     val processFuture = Future {

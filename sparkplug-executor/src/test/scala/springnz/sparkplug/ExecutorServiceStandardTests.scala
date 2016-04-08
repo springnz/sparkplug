@@ -2,8 +2,8 @@ package springnz.sparkplug
 
 import akka.actor._
 import akka.testkit.{ ImplicitSender, TestKit }
-import com.typesafe.config.ConfigFactory
 import org.scalatest._
+import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.Constants
 import springnz.sparkplug.executor.MessageTypes._
 
@@ -15,7 +15,7 @@ class ExecutorServiceStandardTests(_system: ActorSystem)
 
   case object ServerTerminated
 
-  def this() = this(ActorSystem("TestSystemStandard", ConfigFactory.load().getConfig(Constants.defaultConfigSectionName)))
+  def this() = this(ActorSystem("TestSystemStandard", ConfigEnvironment.config.getConfig(Constants.defaultConfigSectionName)))
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)

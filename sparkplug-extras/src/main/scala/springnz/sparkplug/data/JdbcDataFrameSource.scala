@@ -1,15 +1,14 @@
 package springnz.sparkplug.data
 
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.{ DataFrame, SQLContext }
-import springnz.sparkplug.core.SparkOperation
-import springnz.sparkplug.util.{ Pimpers, Logging }
+import springnz.sparkplug.core.{ ConfigEnvironment, SparkOperation }
+import springnz.sparkplug.util.{ Logging, Pimpers }
 
 object JdbcDataFrameSource extends Logging {
   import Pimpers._
 
   def apply(dataBaseName: String, tableName: String): SparkOperation[DataFrame] = SparkOperation { ctx ⇒
-    val config = ConfigFactory.load()
+    val config = ConfigEnvironment.config
     val connectionString = config.getString(s"spark.mysql.$dataBaseName.connectionString")
     val user = config.getString(s"spark.mysql.$dataBaseName.user")
     val password = config.getString(s"spark.mysql.$dataBaseName.password")

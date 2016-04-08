@@ -27,7 +27,7 @@ object ExecutorService extends Logging {
 
     log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${LocalDate.now()}")
 
-    val executorConfig = ConfigFactory.load().getConfig(defaultConfigSectionName)
+    val executorConfig = ConfigEnvironment.config.getConfig(defaultConfigSectionName)
     val system = ActorSystem(actorSystemName, executorConfig)
 
     val executorService = new ExecutorService(appName)
