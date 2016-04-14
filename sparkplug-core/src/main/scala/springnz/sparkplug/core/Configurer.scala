@@ -44,5 +44,5 @@ class LocalConfigurer(
 }
 
 object LocalConfigurer {
-  def defaultConfig = ConfigFactory.load().getConfig("spark.conf")
+  def defaultConfig = ConfigFactory.load.getConfig("sparkplug.spark.conf")
 }

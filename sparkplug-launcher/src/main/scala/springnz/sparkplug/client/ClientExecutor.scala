@@ -91,7 +91,7 @@ object ClientExecutor extends LazyLogging {
     }
   }
 
-  lazy val defaultConfig = ConfigFactory.load()
+  lazy val defaultConfig = ConfigFactory.load.getConfig("sparkplug")
 
   def defaultClientAkkaConfig: Config = defaultConfig.getConfig(defaultAkkaConfigSection)
   def defaultSparkConfig: Config = defaultConfig.getConfig(defaultSparkConfigSection)
