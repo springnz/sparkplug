@@ -1,9 +1,9 @@
 package springnz.sparkplug.client
 
-import java.net.InetAddress
+import java.net.{ URLEncoder, InetAddress }
 
 import better.files._
-import com.typesafe.config.Config
+import com.typesafe.config.{ ConfigRenderOptions, Config }
 import org.apache.spark.launcher.SparkLauncher
 import springnz.sparkplug.util.{ BuilderOps, ConfigUtils, Logging, Pimpers }
 
@@ -36,7 +36,13 @@ object Launcher extends Logging {
     process.waitFor()
   }
 
-  def launch(clientAkkaAddress: String, jarPath: File, mainJarPattern: String, mainClass: String, sparkConfig: Config, sendJars: Boolean = true): Try[Future[Unit]] = Try {
+  def launch(clientAkkaAddress: String,
+    jarPath: File,
+    mainJarPattern: String,
+    mainClass: String,
+    sparkConfig: Config,
+    akkaRemoteConfig: Option[Config],
+    sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
     val fullExtraJarFolder = jarPath.pathAsString
 
@@ -55,13 +61,20 @@ object Launcher extends Logging {
 
     val configVars: Seq[(String, String)] = ConfigUtils.configFields(sparkConfig, "").toSeq
 
+    val akkaRemoteConfigString = akkaRemoteConfig.map { config ⇒
+      val configString = config.root().render(ConfigRenderOptions.concise())
+      URLEncoder.encode(configString, "UTF-8")
+    }
+
     val launcher = (new SparkLauncher)
-      .setIfSome[String](mainJar, (l, mj) ⇒ l.setAppResource(mj))
+      .setIfSome[String](mainJar) { (l, mj) ⇒ l.setAppResource(mj) }
       .setMainClass(mainClass)
       .setAppName(appName)
       .setMaster(sparkMaster)
-      .setIfSome[String](sparkHome, (l, sh) ⇒ l.setSparkHome(sh))
-      .addAppArgs("SparkPlugExecutor", clientAkkaAddress)
+      .setIfSome[String](sparkHome) { (l, sh) ⇒ l.setSparkHome(sh) }
+      .addAppArgs("--appName", appName)
+      .addAppArgs("--clientAkkaAddress", clientAkkaAddress)
+      .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("--remoteAkkaConfig", config) }
       .setFoldLeft(configVars) { case (launcher, (key, value)) ⇒ launcher.setConf(key, value) }
       .setDeployMode(sparkConfig.getString("spark.deploymode"))
 

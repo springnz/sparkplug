@@ -22,8 +22,9 @@ object ClientExecutor extends LazyLogging {
   implicit lazy val clientLogger = logger
 
   case class ClientExecutorParams(
-    akkaConfig: Config = defaultClientAkkaConfig,
+    akkaClientConfig: Config = defaultClientAkkaConfig,
     sparkConfig: Config = defaultSparkConfig,
+    akkaRemoteConfig: Option[Config] = None,
     jarPath: Option[String] = None)
 
   def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
@@ -36,7 +37,7 @@ object ClientExecutor extends LazyLogging {
   def create(params: ClientExecutorParams = ClientExecutorParams()): ClientExecutor = {
 
     val actorSystem: ActorSystem = {
-      Try { ActorSystem(actorSystemName, params.akkaConfig) }
+      Try { ActorSystem(actorSystemName, params.akkaClientConfig) }
         .withErrorLog("Unable to create ActorSystem")
         .get
     }
@@ -50,8 +51,9 @@ object ClientExecutor extends LazyLogging {
       actorSystem.actorOf(
         Coordinator.props(
           Some(readyPromise),
-          akkaConfig = params.akkaConfig,
+          akkaClientConfig = params.akkaClientConfig,
           sparkConfig = params.sparkConfig,
+          akkaRemoteConfig = params.akkaRemoteConfig,
           jarPath = params.jarPath),
         name = coordinatorActorName)
       readyPromise.future

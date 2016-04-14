@@ -4,6 +4,7 @@ import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
 import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess, ShutDown }
 
@@ -45,7 +46,8 @@ class CoordinatorTests(_system: ActorSystem)
   }
 
   override def beforeAll {
-    coordinator = system.actorOf(Coordinator.props(None), "TestCoordinator")
+    val configSection = s"sparkplug.${springnz.sparkplug.executor.Constants.defaultAkkaRemoteConfigSection}"
+    coordinator = system.actorOf(Coordinator.props(None, akkaRemoteConfig = Some(ConfigFactory.load.getConfig(configSection))), "TestCoordinator")
   }
 
   override def afterAll {

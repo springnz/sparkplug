@@ -17,15 +17,18 @@ object Coordinator {
   private case class LauncherError(reason: Throwable)
 
   def props(readyPromise: Option[Promise[ActorRef]],
-    akkaConfig: Config = ClientExecutor.defaultClientAkkaConfig,
+    akkaClientConfig: Config = ClientExecutor.defaultClientAkkaConfig,
     sparkConfig: Config = ClientExecutor.defaultSparkConfig,
-    jarPath: Option[String] = None) = Props(new Coordinator(readyPromise, akkaConfig, sparkConfig, jarPath))
+    akkaRemoteConfig: Option[Config] = None,
+    jarPath: Option[String] = None) =
+    Props(new Coordinator(readyPromise, akkaClientConfig, sparkConfig, akkaRemoteConfig, jarPath))
 }
 
 class Coordinator(
     readyPromise: Option[Promise[ActorRef]],
-    akkaConfig: Config,
+    akkaClientConfig: Config,
     sparkConfig: Config,
+    akkaRemoteConfig: Option[Config],
     jarPath: Option[String]) extends Actor with PreStart with Logging {
   import Constants._
   import Coordinator._
@@ -33,8 +36,8 @@ class Coordinator(
   override def preStart() = {
     val launchTry: Try[Future[Unit]] = Try {
       // doesn't seem to be a way to get the hostname and port at runtime
-      val hostName = akkaConfig.getString("akka.remote.netty.tcp.hostname")
-      val port = akkaConfig.getInt("akka.remote.netty.tcp.port")
+      val hostName = akkaClientConfig.getString("akka.remote.netty.tcp.hostname")
+      val port = akkaClientConfig.getInt("akka.remote.netty.tcp.port")
       val systemName = context.system.name
       val clientPath = context.self.path.toString
       val localPath = clientPath.substring(clientPath.indexOf("/user/"))
@@ -44,7 +47,7 @@ class Coordinator(
       val usedJarPathSuffix = jarPath.getOrElse(defaultJarPath)
       val usedJarPath = if (usedJarPathSuffix.startsWith("/")) root / usedJarPathSuffix else userDir / usedJarPathSuffix
 
-      Launcher.launch(clientAkkaAddress, usedJarPath, mainJarPattern, mainClass, sparkConfig).get
+      Launcher.launch(clientAkkaAddress, usedJarPath, mainJarPattern, mainClass, sparkConfig, akkaRemoteConfig).get
     }
 
     launchTry match {
