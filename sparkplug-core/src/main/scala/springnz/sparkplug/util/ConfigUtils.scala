@@ -7,7 +7,9 @@ import scala.collection.JavaConversions._
 object ConfigUtils {
 
   def configFields(appConfig: Config, fieldBase: String): Map[String, String] = {
-    val sparkConfig = if (fieldBase.isEmpty) appConfig else appConfig.getConfig(fieldBase)
+    val sparkConfig =
+      if (fieldBase.isEmpty || !appConfig.hasPath(fieldBase)) appConfig else appConfig.getConfig(fieldBase)
+
     sparkConfig.entrySet
       .map {
         case entry ⇒

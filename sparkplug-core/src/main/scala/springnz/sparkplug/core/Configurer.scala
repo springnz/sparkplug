@@ -30,15 +30,19 @@ trait MapConfigurer extends Configurer {
 class LocalConfigurer(
     applicationName: String,
     sparkMaster: Option[String] = None,
-    config: Config = ConfigFactory.load()) extends MapConfigurer {
+    configOption: Option[Config] = Some(LocalConfigurer.defaultConfig)) extends MapConfigurer {
 
   protected def appName = applicationName
 
-  private val configFields = ConfigUtils.configFields(config, "spark.conf")
+  private val configFields = configOption.map(config ⇒ ConfigUtils.configFields(config, "")).getOrElse(Map.empty)
 
   override def configMap = (sparkMaster match {
     case Some(masterName) ⇒ configFields.updated("spark.master", masterName)
     case None             ⇒ configFields
   }) ++ Map("spark.app.name" -> appName)
 
+}
+
+object LocalConfigurer {
+  def defaultConfig = ConfigFactory.load().getConfig("spark.conf")
 }

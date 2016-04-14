@@ -42,7 +42,8 @@ object ExecutorService extends Logging {
 
 class ExecutorService(appName: String, brokerName: String = Constants.brokerActorName) extends LongLivedExecutor with Logging {
 
-  override val configurer: Configurer = new LocalConfigurer(appName, Properties.envOrNone("SPARK_MASTER"))
+  // Note that the SparkConf inherits all its settings from spark-submit
+  override val configurer: Configurer = new LocalConfigurer(appName, Properties.envOrNone("SPARK_MASTER"), None)
 
   def start(system: ActorSystem, sparkClientPath: String): Try[Unit] = {
 
