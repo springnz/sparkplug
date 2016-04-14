@@ -3,14 +3,13 @@ package springnz.sparkplug.executor
 import java.time.LocalDate
 
 import akka.actor._
-import com.typesafe.config.ConfigFactory
 import springnz.sparkplug.core._
 import springnz.sparkplug.util.Logging
 
-import scala.util.{ Properties, Try }
+import scala.util.{Properties, Try}
 
 object Constants {
-  val akkaConfigSection = "sparkPlugAkkaExecutorService"
+  val defaultAkkaRemoteConfigSection = "sparkPlugAkkaRemote"
   val actorSystemName = "sparkPlugExecutorSystem"
   val brokerActorName = "sparkPlugRequestBroker"
 }
@@ -18,7 +17,7 @@ object Constants {
 object ExecutorService extends Logging {
   import Constants._
 
-  lazy val defaultRemoteAkkaConfig = ConfigEnvironment.config.getConfig(akkaConfigSection)
+  lazy val defaultRemoteAkkaConfig = ConfigEnvironment.config.getConfig(defaultAkkaRemoteConfigSection)
 
   // TODO: proper command line parsing to allow richer config options
   def main(args: Array[String]): Unit = {
