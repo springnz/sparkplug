@@ -3,8 +3,7 @@ package springnz.sparkplug
 import akka.actor._
 import akka.testkit.{ ImplicitSender, TestKit }
 import org.scalatest._
-import springnz.sparkplug.core.ConfigEnvironment
-import springnz.sparkplug.executor.Constants
+import springnz.sparkplug.executor.ExecutorService
 import springnz.sparkplug.executor.MessageTypes._
 
 import scala.concurrent.Await
@@ -15,7 +14,7 @@ class ExecutorServiceBrokerDeathTests(_system: ActorSystem)
 
   case object ServerTerminated
 
-  def this() = this(ActorSystem("TestSystemDeathWatch", ConfigEnvironment.config.getConfig(Constants.defaultConfigSectionName)))
+  def this() = this(ActorSystem("TestSystemDeathWatch", ExecutorService.defaultRemoteAkkaConfig))
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)

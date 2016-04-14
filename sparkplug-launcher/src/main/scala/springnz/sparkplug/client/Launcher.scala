@@ -3,9 +3,9 @@ package springnz.sparkplug.client
 import java.net.InetAddress
 
 import better.files._
+import com.typesafe.config.Config
 import org.apache.spark.launcher.SparkLauncher
-import springnz.sparkplug.core.ConfigEnvironment
-import springnz.sparkplug.util.{ BuilderOps, Logging, Pimpers }
+import springnz.sparkplug.util.{ BuilderOps, ConfigUtils, Logging, Pimpers }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,8 +14,6 @@ import scala.util.{ Properties, Try }
 object Launcher extends Logging {
   import BuilderOps._
   import Pimpers._
-
-  val config = ConfigEnvironment.config.getConfig("sparkPlugClient.spark.conf")
 
   def startProcess(launcher: SparkLauncher): Future[Unit] = {
     val processFuture = Future {
@@ -38,7 +36,7 @@ object Launcher extends Logging {
     process.waitFor()
   }
 
-  def launch(clientAkkaAddress: String, jarPath: File, mainJarPattern: String, mainClass: String, sendJars: Boolean = true): Try[Future[Unit]] = Try {
+  def launch(clientAkkaAddress: String, jarPath: File, mainJarPattern: String, mainClass: String, sparkConfig: Config, sendJars: Boolean = true): Try[Future[Unit]] = Try {
 
     val fullExtraJarFolder = jarPath.pathAsString
 
@@ -55,6 +53,8 @@ object Launcher extends Logging {
 
     val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.pathAsString }
 
+    val configVars: Seq[(String, String)] = ConfigUtils.configFields(sparkConfig, "").toSeq
+
     val launcher = (new SparkLauncher)
       .setIfSome[String](mainJar, (l, mj) ⇒ l.setAppResource(mj))
       .setMainClass(mainClass)
@@ -62,12 +62,8 @@ object Launcher extends Logging {
       .setMaster(sparkMaster)
       .setIfSome[String](sparkHome, (l, sh) ⇒ l.setSparkHome(sh))
       .addAppArgs("SparkPlugExecutor", clientAkkaAddress)
-      .setConf("spark.app.id", appName)
-      .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getString("spark.executor.memory"))
-      .setConf(SparkLauncher.EXECUTOR_CORES, config.getString("spark.executor.cores"))
-      .setConf(SparkLauncher.DRIVER_MEMORY, config.getString("spark.driver.memory"))
-      .setDeployMode(config.getString("spark.deploymode"))
-    //      .addSparkArgs(sparkArgs) TODO: enable this functionality (need Spark 1.5 for this)
+      .setFoldLeft(configVars) { case (launcher, (key, value)) ⇒ launcher.setConf(key, value) }
+      .setDeployMode(sparkConfig.getString("spark.deploymode"))
 
     val extraJarFiles = jarPath.glob("*.jar")
       .map { case f ⇒ f.pathAsString }

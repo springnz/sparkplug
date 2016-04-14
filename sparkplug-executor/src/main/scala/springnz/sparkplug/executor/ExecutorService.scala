@@ -10,13 +10,15 @@ import springnz.sparkplug.util.Logging
 import scala.util.{ Properties, Try }
 
 object Constants {
-  val defaultConfigSectionName = "sparkPlugAkkaExecutorService"
+  val akkaConfigSection = "sparkPlugAkkaExecutorService"
   val actorSystemName = "sparkPlugExecutorSystem"
   val brokerActorName = "sparkPlugRequestBroker"
 }
 
 object ExecutorService extends Logging {
   import Constants._
+
+  lazy val defaultRemoteAkkaConfig = ConfigEnvironment.config.getConfig(akkaConfigSection)
 
   // TODO: proper command line parsing to allow richer config options
   def main(args: Array[String]): Unit = {
@@ -27,8 +29,11 @@ object ExecutorService extends Logging {
 
     log.info(s"Starting Sparkplug ExecutorService: SparkClient = $sparkClientPath: ${LocalDate.now()}")
 
-    val executorConfig = ConfigEnvironment.config.getConfig(defaultConfigSectionName)
-    val system = ActorSystem(actorSystemName, executorConfig)
+    import scala.collection.JavaConversions._
+    def env = System.getenv().toMap
+    log.debug(s"Environment:\n $env")
+
+    val system = ActorSystem(actorSystemName, defaultRemoteAkkaConfig)
 
     val executorService = new ExecutorService(appName)
     executorService.start(system, sparkClientPath)
