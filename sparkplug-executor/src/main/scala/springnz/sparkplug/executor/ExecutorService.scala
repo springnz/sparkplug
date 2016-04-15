@@ -24,7 +24,7 @@ object ExecutorService extends Logging {
   // TODO: proper command line parsing to allow richer config options
   def main(args: Array[String]): Unit = {
     if (args.length < 4)
-      throw new IllegalArgumentException(s"Expected at least 4 arguments to ExecutorService, the app name and the akka address of the client actor. Args = : ${args.toList}")
+      throw new IllegalArgumentException(s"Expected at least 4 arguments to ExecutorService. Args = : ${args.toList}")
     val appName = args(1)
     val sparkClientPath = args(3)
 

@@ -34,7 +34,7 @@ class LocalConfigurer(
 
   protected def appName = applicationName
 
-  private val configFields = configOption.map(config ⇒ ConfigUtils.configFields(config, "")).getOrElse(Map.empty)
+  private val configFields = configOption.map(config ⇒ ConfigUtils.configFields(config)).getOrElse(Map.empty)
 
   override def configMap = (sparkMaster match {
     case Some(masterName) ⇒ configFields.updated("spark.master", masterName)

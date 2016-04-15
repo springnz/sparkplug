@@ -59,7 +59,7 @@ object Launcher extends Logging {
 
     val mainJar = jarPath.glob(mainJarPattern).collectFirst { case f ⇒ f.pathAsString }
 
-    val configVars: Seq[(String, String)] = ConfigUtils.configFields(sparkConfig, "").toSeq
+    val configVars: Seq[(String, String)] = ConfigUtils.configFields(sparkConfig).toSeq
 
     val akkaRemoteConfigString = akkaRemoteConfig.map { config ⇒
       val configString = config.root().render(ConfigRenderOptions.concise())
