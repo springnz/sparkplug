@@ -3,7 +3,6 @@ package springnz.sparkplug.client
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.testkit.{ ImplicitSender, TestKit }
 import org.scalatest._
-import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes.{ JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.duration._
@@ -11,7 +10,7 @@ import scala.concurrent.duration._
 class CoordinatorCleanupTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
 
-  def this() = this(ActorSystem(Constants.actorSystemName, ConfigEnvironment.config.getConfig(Constants.defaultConfigSectionName)))
+  def this() = this(ActorSystem(Constants.actorSystemName, ClientExecutor.defaultClientAkkaConfig))
 
   var coordinator: ActorRef = null
 

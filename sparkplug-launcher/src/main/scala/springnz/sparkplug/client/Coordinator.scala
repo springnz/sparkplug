@@ -5,8 +5,6 @@ import akka.actor._
 import better.files.File._
 import better.files._
 import com.typesafe.config.Config
-import springnz.sparkplug.client.Constants._
-import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.util.Logging
 
@@ -19,24 +17,27 @@ object Coordinator {
   private case class LauncherError(reason: Throwable)
 
   def props(readyPromise: Option[Promise[ActorRef]],
-    config: Config = Coordinator.defaultConfig,
-    jarPath: Option[String] = None) = Props(new Coordinator(readyPromise, config, jarPath))
-
-  def defaultConfig: Config = {
-    val config = ConfigEnvironment.config
-    config.getConfig(defaultConfigSectionName)
-  }
+    akkaClientConfig: Config = ClientExecutor.defaultClientAkkaConfig,
+    sparkConfig: Config = ClientExecutor.defaultSparkConfig,
+    akkaRemoteConfig: Option[Config] = None,
+    jarPath: Option[String] = None) =
+    Props(new Coordinator(readyPromise, akkaClientConfig, sparkConfig, akkaRemoteConfig, jarPath))
 }
 
-class Coordinator(readyPromise: Option[Promise[ActorRef]], config: Config, jarPath: Option[String]) extends Actor with PreStart with Logging {
+class Coordinator(
+    readyPromise: Option[Promise[ActorRef]],
+    akkaClientConfig: Config,
+    sparkConfig: Config,
+    akkaRemoteConfig: Option[Config],
+    jarPath: Option[String]) extends Actor with PreStart with Logging {
   import Constants._
   import Coordinator._
 
   override def preStart() = {
     val launchTry: Try[Future[Unit]] = Try {
       // doesn't seem to be a way to get the hostname and port at runtime
-      val hostName = config.getString("akka.remote.netty.tcp.hostname")
-      val port = config.getInt("akka.remote.netty.tcp.port")
+      val hostName = akkaClientConfig.getString("akka.remote.netty.tcp.hostname")
+      val port = akkaClientConfig.getInt("akka.remote.netty.tcp.port")
       val systemName = context.system.name
       val clientPath = context.self.path.toString
       val localPath = clientPath.substring(clientPath.indexOf("/user/"))
@@ -46,7 +47,7 @@ class Coordinator(readyPromise: Option[Promise[ActorRef]], config: Config, jarPa
       val usedJarPathSuffix = jarPath.getOrElse(defaultJarPath)
       val usedJarPath = if (usedJarPathSuffix.startsWith("/")) root / usedJarPathSuffix else userDir / usedJarPathSuffix
 
-      Launcher.launch(clientAkkaAddress, usedJarPath, mainJarPattern, mainClass).get
+      Launcher.launch(clientAkkaAddress, usedJarPath, mainJarPattern, mainClass, sparkConfig, akkaRemoteConfig).get
     }
 
     launchTry match {

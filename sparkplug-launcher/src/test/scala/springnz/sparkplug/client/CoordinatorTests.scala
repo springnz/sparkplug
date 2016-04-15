@@ -2,11 +2,10 @@ package springnz.sparkplug.client
 
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.pattern.ask
-import akka.testkit.{ ImplicitSender, TestActorRef, TestKit }
+import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
-import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.Await
@@ -15,7 +14,7 @@ import scala.concurrent.duration._
 class CoordinatorTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
 
-  def this() = this(ActorSystem(Constants.actorSystemName, ConfigEnvironment.config.getConfig(Constants.defaultConfigSectionName)))
+  def this() = this(ActorSystem(Constants.actorSystemName, ClientExecutor.defaultClientAkkaConfig))
 
   var coordinator: ActorRef = null
 
@@ -47,7 +46,8 @@ class CoordinatorTests(_system: ActorSystem)
   }
 
   override def beforeAll {
-    coordinator = system.actorOf(Coordinator.props(None), "TestCoordinator")
+    val configSection = s"sparkplug.${springnz.sparkplug.executor.Constants.defaultAkkaRemoteConfigSection}"
+    coordinator = system.actorOf(Coordinator.props(None, akkaRemoteConfig = Some(ConfigFactory.load.getConfig(configSection))), "TestCoordinator")
   }
 
   override def afterAll {

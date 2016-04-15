@@ -1,9 +1,8 @@
 package springnz.sparkplug.client
 
 import akka.actor._
-import com.typesafe.config.Config
+import com.typesafe.config.{ ConfigFactory, Config }
 import com.typesafe.scalalogging.LazyLogging
-import springnz.sparkplug.core.ConfigEnvironment
 import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.util.Pimpers
 
@@ -22,9 +21,11 @@ object ClientExecutor extends LazyLogging {
   import Pimpers._
   implicit lazy val clientLogger = logger
 
-  case class ClientExecutorParams(config: Config = defaultConfig(), jarPath: Option[String] = None)
-
-  def defaultConfig() = ConfigEnvironment.config.getConfig(defaultConfigSectionName)
+  case class ClientExecutorParams(
+    akkaClientConfig: Config = defaultClientAkkaConfig,
+    sparkConfig: Config = defaultSparkConfig,
+    akkaRemoteConfig: Option[Config] = None,
+    jarPath: Option[String] = None)
 
   def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
     val executor = create(params)
@@ -36,7 +37,7 @@ object ClientExecutor extends LazyLogging {
   def create(params: ClientExecutorParams = ClientExecutorParams()): ClientExecutor = {
 
     val actorSystem: ActorSystem = {
-      Try { ActorSystem(actorSystemName, params.config) }
+      Try { ActorSystem(actorSystemName, params.akkaClientConfig) }
         .withErrorLog("Unable to create ActorSystem")
         .get
     }
@@ -47,7 +48,14 @@ object ClientExecutor extends LazyLogging {
     // This actor then creates the Coordinator
     val coordinatorFuture: Future[ActorRef] = {
       val readyPromise = Promise[ActorRef]()
-      actorSystem.actorOf(Coordinator.props(Some(readyPromise), params.config, params.jarPath), name = coordinatorActorName)
+      actorSystem.actorOf(
+        Coordinator.props(
+          Some(readyPromise),
+          akkaClientConfig = params.akkaClientConfig,
+          sparkConfig = params.sparkConfig,
+          akkaRemoteConfig = params.akkaRemoteConfig,
+          jarPath = params.jarPath),
+        name = coordinatorActorName)
       readyPromise.future
     }
 
@@ -84,4 +92,10 @@ object ClientExecutor extends LazyLogging {
       }
     }
   }
+
+  lazy val defaultConfig = ConfigFactory.load.getConfig("sparkplug")
+
+  def defaultClientAkkaConfig: Config = defaultConfig.getConfig(defaultAkkaConfigSection)
+  def defaultSparkConfig: Config = defaultConfig.getConfig(defaultSparkConfigSection)
+
 }
