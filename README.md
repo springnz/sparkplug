@@ -257,7 +257,7 @@ Sparkplug provides utilities to make this easy. These take the form of a family 
 To enable them:
 
 ```scala
-import springnz.sparkplug.testkit.SparkOperationTestPimpers._
+import springnz.sparkplug.testkit._
 ```
 
 In the test environment there are several use case cases that are dealt with:
@@ -406,7 +406,7 @@ trait ClientExecutor {
 
 Use the `ClientExecutor` companion object to create an executor instance.
 ```scala
-val executor = ClientExecutor.create()
+val executor = ClientExecutor.create(params: ClientExecutorParams)
 ```
 
 Note that the executor can be called multiple times, but the `shutDown` method must be called to free up local and remote resources.
@@ -414,12 +414,42 @@ Note that the executor can be called multiple times, but the `shutDown` method m
 If you wish to execute low latency jobs, this is the way to go.
 
 If you only intend invoking a single, long running job within a session, and don't care about the startup time, simply use the `apply` on the `ClientExecutor` object:
+
 ```scala
 implicit val ec = scala.concurrent.ExecutionContext.global
 val docStatsFuture = ClientExecutor[DocumentStats]("mypackage.DocumentStatsPlugin", None)
 ```
 
 Executing a job on a Spark cluster doesn't get easier than this!
+
+### Configuration
+
+All the configuration necessary can be overrided, and is done so via the `ClientExecutorParams` class.
+
+```scala
+import com.typesafe.config.Config
+
+object ClientExecutor  {
+  ...
+  case class ClientExecutorParams(
+    akkaClientConfig: Config = defaultClientAkkaConfig,
+    sparkConfig: Config = defaultSparkConfig,
+    akkaRemoteConfig: Option[Config] = None,
+    jarPath: Option[String] = None)
+```
+
+The following config can be provided:
+
+* Akka client configuration
+* Akka remote configuration
+* Spark configuration
+
+The default Akka configuration should work fine in most cases, but the Spark configuration will probably need to be customised in most production environments. 
+Note that all the configuration for the remote Spark context is dynamically driven from the client end.
+*See the [Spark config docs](http://spark.apache.org/docs/latest/configuration.html#dynamically-loading-spark-properties) for more information this mechanism.* 
+
+The default spark configuration is whatever is enclosed in the config section `sparkplug.spark.conf`. Note that if you override it, you supply the inner configuration 
+(`spark.master`, `spark.home` etc). The mechanism provided gives a working setp up the box, but give you total flexibility in how you override it.
 
 ### Possible future interface changes
 
@@ -431,16 +461,14 @@ Executing a job on a Spark cluster doesn't get easier than this!
 SparkPlug is set up as a sbt multi-project with the following subprojects:
 
 * **sparkplug-core**: The core `SparkOperation` monad and related traits and interfaces.
-* **sparkplug-extras**: Components for data access (currently Cassandra and SQL) and utilities for testing.
+* **sparkplug-extras**: Components for data access (currently Cassandra, Elasticsearch and SQL) and utilities for testing. It is not recommended to use this project, but rather do your own data access, and treat these as examples.
 * **sparkplug-examples**: Several examples for how to create Spark pipelines. A good place to start.
 * **sparkplug-executor**: The Server side of the cluster execution component.
 * **sparkplug-launcher**: The Client side of the cluster execution component.
 
-## Build and Test
-
-There is a build dependency on [Spring NZ util-lib](https://github.com/springnz/util-lib). The easiest is to clone the repository and run `sbt publish` (or `sbt publishLocal`) to publish to your (local) repository.
-
-Then clone the repository and compile / test in sbt.
+If you are building an application using sparkplug, you would require the following dependencies:
+* **sparkplug-core**: For any of your pipeline classes.
+* **sparkplug-launcher**: For cluster execution.
 
 ### Clustering
 
@@ -468,29 +496,6 @@ All jars in your client application need to be in one folder. This can be done u
 Add the following line to your `plugins.sbt` file: `addSbtPlugin("org.xerial.sbt" % "sbt-pack" % "0.7.5")` (see the SBT Pack docs for the latest info).
 
 Then, before running the tests, run `sbt pack`. This copies all the .jar files to the folder `{projectdir}/target/pack/lib`. Any jars that are in this folder will be added to the submit request.
-
-### Environment variables
-
-Environment variables may be required, particular for data connections:
-
-#### Spark environment variables (for cluster execution)
-
-* *SPARK_HOME*: Spark home folder
-* *SPARK_MASTER*: Spark master location / URL
-* *SPARK_EVENTLOG_ENABLED*: Used to turn on event logging for the Spark WebUI.
-* *SPARK_EVENTLOG_DIR*: Location to log to for the Spark WebUI events.
-
-#### Spark Remote Execution
-
-* *SPARK_EXECUTOR_CORES*: Number of cores used per Spark executor (default 1).
-* *SPARK_EXECUTOR_MEMORY*: Memory assigned to Spark executor (default 1g).
-* *SPARK_DRIVER_MEMORY*: Memory assigned to Spark driver process (default 1g).
-
-#### Cassandra Connections:
-
-* *SPARK_CASSANDRA_CONNECTION_HOST*: Host name for Cassandra connections (defaults to 127.0.0.1)
-* *SPARK_CASSANDRA_AUTH_USERNAME*: Username for authenticated cassandra connections
-* *SPARK_CASSANDRA_AUTH_PASSWORD*: Password for authenticated cassandra connections
 
 ## TODO
 
