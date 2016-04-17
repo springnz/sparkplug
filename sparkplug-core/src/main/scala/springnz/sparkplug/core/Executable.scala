@@ -14,6 +14,6 @@ class LocalExecutable(
     config: Option[Config] = Some(LocalConfigurer.defaultConfig)) extends Executable {
 
   override def executor = new SparkExecutor {
-    override val configurer: Configurer = new LocalConfigurer(appName, sparkMaster)
+    override val configurer: Configurer = new LocalConfigurer(appName, sparkMaster, config)
   }
 }
