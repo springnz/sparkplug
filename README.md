@@ -414,6 +414,7 @@ Note that the executor can be called multiple times, but the `shutDown` method m
 If you wish to execute low latency jobs, this is the way to go.
 
 If you only intend invoking a single, long running job within a session, and don't care about the startup time, simply use the `apply` on the `ClientExecutor` object:
+
 ```scala
 implicit val ec = scala.concurrent.ExecutionContext.global
 val docStatsFuture = ClientExecutor[DocumentStats]("mypackage.DocumentStatsPlugin", None)
