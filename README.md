@@ -425,8 +425,6 @@ Executing a job on a Spark cluster doesn't get easier than this!
 
 All the configuration necessary can be overrided, and is done so via the `ClientExecutorParams` class.
 
-### Configuration
-
 ```scala
 import com.typesafe.config.Config
 
