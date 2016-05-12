@@ -48,6 +48,7 @@ object Launcher extends Logging {
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
+    log.debug(s"Spark master set to: $sparkMaster")
 
     // TODO: enable this functionality (need Spark 1.5 for this)
     //    val sparkArgs: Array[String] = config.getString("spark.submit.sparkargs").split(' ')
@@ -70,13 +71,13 @@ object Launcher extends Logging {
       .setIfSome[String](mainJar) { (l, mj) ⇒ l.setAppResource(mj) }
       .setMainClass(mainClass)
       .setAppName(appName)
-      .setMaster(sparkMaster)
+      .setMaster("spark://aklkvm026:7077")//sparkMaster)
       .setIfSome[String](sparkHome) { (l, sh) ⇒ l.setSparkHome(sh) }
       .addAppArgs("--appName", appName)
       .addAppArgs("--clientAkkaAddress", clientAkkaAddress)
       .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("--remoteAkkaConfig", config) }
       .setFoldLeft(configVars) { case (launcher, (key, value)) ⇒ launcher.setConf(key, value) }
-      .setDeployMode(sparkConfig.getString("spark.deploymode"))
+      .setDeployMode("cluster") //sparkConfig.getString("spark.deploymode"))
 
     val extraJarFiles = jarPath.glob("*.jar")
       .map { case f ⇒ f.pathAsString }
@@ -89,6 +90,8 @@ object Launcher extends Logging {
       else launcher
         .setConf(SparkLauncher.DRIVER_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
         .setConf(SparkLauncher.EXECUTOR_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
+
+    launcherWithJars.setVerbose(true)
 
     startProcess(launcherWithJars)
   }
