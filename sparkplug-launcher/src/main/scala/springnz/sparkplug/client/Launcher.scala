@@ -71,13 +71,13 @@ object Launcher extends Logging {
       .setIfSome[String](mainJar) { (l, mj) ⇒ l.setAppResource(mj) }
       .setMainClass(mainClass)
       .setAppName(appName)
-      .setMaster("spark://aklkvm026:7077")//sparkMaster)
+      .setMaster(sparkMaster)
       .setIfSome[String](sparkHome) { (l, sh) ⇒ l.setSparkHome(sh) }
-      .addAppArgs("--appName", appName)
-      .addAppArgs("--clientAkkaAddress", clientAkkaAddress)
-      .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("--remoteAkkaConfig", config) }
+      .addAppArgs("appName", appName)
+      .addAppArgs("clientAkkaAddress", clientAkkaAddress)
+      .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("remoteAkkaConfig", config) }
       .setFoldLeft(configVars) { case (launcher, (key, value)) ⇒ launcher.setConf(key, value) }
-      .setDeployMode("cluster") //sparkConfig.getString("spark.deploymode"))
+      .setDeployMode(sparkConfig.getString("spark.deploymode"))
 
     val extraJarFiles = jarPath.glob("*.jar")
       .map { case f ⇒ f.pathAsString }
@@ -90,8 +90,6 @@ object Launcher extends Logging {
       else launcher
         .setConf(SparkLauncher.DRIVER_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
         .setConf(SparkLauncher.EXECUTOR_EXTRA_CLASSPATH, s"$fullExtraJarFolder/*")
-
-    launcherWithJars.setVerbose(true)
 
     startProcess(launcherWithJars)
   }
