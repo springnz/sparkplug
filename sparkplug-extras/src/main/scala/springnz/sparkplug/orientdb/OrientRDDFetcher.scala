@@ -19,7 +19,7 @@ object OrientRDDFetcher extends Logging {
     SparkOperation { ctx ⇒
       val result = where match {
         case Some(where) ⇒
-          log.info(s"Executing query: select * from [$className] where [$where]")
+          log.info(s"Executing query: select * from $className where $where")
           orientDBConnector match {
             case Some(connector) ⇒
               ctx.orientDocumentQuery(className, where)(connector)
@@ -27,7 +27,7 @@ object OrientRDDFetcher extends Logging {
               ctx.orientDocumentQuery(className, where)
           }
         case None ⇒
-          log.info(s"Executing query: select * from [$className]")
+          log.info(s"Executing query: select * from $className")
           orientDBConnector match {
             case Some(connector) ⇒
               ctx.orientDocumentQuery(className)(connector)
