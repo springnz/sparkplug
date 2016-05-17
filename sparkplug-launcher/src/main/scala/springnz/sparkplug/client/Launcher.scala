@@ -48,6 +48,7 @@ object Launcher extends Logging {
 
     val sparkHome = Properties.envOrNone("SPARK_HOME")
     val sparkMaster = Properties.envOrElse("SPARK_MASTER", s"spark://${InetAddress.getLocalHost.getHostAddress}:7077")
+    log.debug(s"Spark master set to: $sparkMaster")
 
     // TODO: enable this functionality (need Spark 1.5 for this)
     //    val sparkArgs: Array[String] = config.getString("spark.submit.sparkargs").split(' ')
@@ -72,9 +73,9 @@ object Launcher extends Logging {
       .setAppName(appName)
       .setMaster(sparkMaster)
       .setIfSome[String](sparkHome) { (l, sh) ⇒ l.setSparkHome(sh) }
-      .addAppArgs("--appName", appName)
-      .addAppArgs("--clientAkkaAddress", clientAkkaAddress)
-      .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("--remoteAkkaConfig", config) }
+      .addAppArgs("appName", appName)
+      .addAppArgs("clientAkkaAddress", clientAkkaAddress)
+      .setIfSome(akkaRemoteConfigString) { (l, config) ⇒ l.addAppArgs("remoteAkkaConfig", config) }
       .setFoldLeft(configVars) { case (launcher, (key, value)) ⇒ launcher.setConf(key, value) }
       .setDeployMode(sparkConfig.getString("spark.deploymode"))
 
