@@ -9,11 +9,17 @@ import springnz.sparkplug.executor.MessageTypes._
 import springnz.sparkplug.util.Logging
 
 import scala.concurrent._
+import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
 
 object Coordinator {
-  case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
-  case class JobCompleteIndex(jobIndex: Int)
+  private[client] case class JobRequestWithPromise(jobRequest: JobRequest, promise: Option[Promise[Any]])
+  private[client] case class JobCompleteIndex(jobIndex: Int)
+
+  case class JobWaitingDetails(sender: ActorRef, request: JobRequest)
+  case class JobRequestDetails(jobIndex: Int, sender: ActorRef, request: JobRequest)
+  private case object RestartLauncher
+
   private case class LauncherError(reason: Throwable)
 
   def props(readyPromise: Option[Promise[ActorRef]],
@@ -33,7 +39,14 @@ class Coordinator(
   import Constants._
   import Coordinator._
 
-  override def preStart() = {
+  private val restartAttempts = akkaClientConfig.getInt("restart.attempts")
+  private val restartDelayIncrements = akkaClientConfig.getInt("restart.delayincrements")
+
+  private var restartCount = 0
+
+  override def preStart() = startLauncher()
+
+  def startLauncher() = {
     val launchTry: Try[Future[Unit]] = Try {
       // doesn't seem to be a way to get the hostname and port at runtime
       val hostName = akkaClientConfig.getString("akka.remote.netty.tcp.hostname")
@@ -65,20 +78,21 @@ class Coordinator(
     }
   }
 
-  override def receive: Receive = waitForReady(List.empty)
+  override def receive: Receive = waitForReady(0, List.empty)
 
-  def waitForReady(queuedList: List[(ActorRef, JobRequest)]): Receive = {
+  def waitForReady(jobCounter: Int, queuedList: List[JobWaitingDetails]): Receive = {
     case LauncherError(reason) ⇒
       log.error(s"Shutting down coordinator after launcher error.", reason)
       if (readyPromise.isDefined)
         readyPromise.get.failure(reason)
       else
         context.parent ! ServerError(reason)
+      context.become(notReceivingRequests)
       self ! PoisonPill
 
     case ServerReady ⇒
       val broker = sender()
-      context.become(waitForRequests(broker, 0, Set.empty[Int]))
+      context.become(waitForRequests(broker, jobCounter, Set.empty))
       log.info(s"Coordinator received a ServerReady message from broker: ${broker.path.toString}")
 
       // Compete the Promise or send ServerReady
@@ -94,7 +108,7 @@ class Coordinator(
       broker ! ClientReady
 
       queuedList.foreach {
-        case (originalSender, request) ⇒
+        case JobWaitingDetails(originalSender, request) ⇒
           log.info(s"Forwarding queued request $request from $sender")
           self.tell(request, originalSender)
       }
@@ -106,11 +120,17 @@ class Coordinator(
 
     case request: JobRequest ⇒ {
       log.info(s"Queueing request $request from $sender")
-      context.become(waitForReady((sender, request) :: queuedList))
+      context.become(waitForReady(jobCounter, JobWaitingDetails(sender, request) :: queuedList))
+    }
+
+    case RestartLauncher ⇒ {
+      log.info(s"Restarting the server for the ${restartAttempts + 1} (th) time.")
+      restartCount += 1
+      startLauncher
     }
   }
 
-  def waitForRequests(broker: ActorRef, jobCounter: Int, jobsOutstanding: Set[Int]): Receive = {
+  def waitForRequests(broker: ActorRef, jobCounter: Int, jobsOutstanding: Set[JobRequestDetails]): Receive = {
 
     case request: JobRequest ⇒
       self forward JobRequestWithPromise(request, None)
@@ -127,24 +147,40 @@ class Coordinator(
           None
       }
       context.actorOf(SingleJobProcessor.props(request, broker, requestor, promise, jobCounter), s"SingleJobProcessor-$jobCounter")
-      context become waitForRequests(broker, jobCounter + 1, jobsOutstanding + jobCounter)
+      context become waitForRequests(broker, jobCounter + 1, jobsOutstanding + JobRequestDetails(jobCounter, sender, request))
 
     case ShutDown ⇒ shutDown(broker)
 
     case JobCompleteIndex(finishedIndex) ⇒
       log.info(s"Received forwarded completion for job: $finishedIndex")
-      val jobsRemaining = jobsOutstanding - finishedIndex
+      val finishedJob: Option[JobRequestDetails] = jobsOutstanding.find { details ⇒ details.jobIndex == finishedIndex }
+      val jobsRemaining = finishedJob.map(job ⇒ jobsOutstanding - job).getOrElse(jobsOutstanding)
       log.info(s"Jobs left to complete: $jobsRemaining")
       context become waitForRequests(broker, jobCounter, jobsRemaining)
 
     case Terminated(_) ⇒
       log.info("Server terminated, crashed or timed out. Shutting down the client coordination.")
-      context.become(notReceivingRequests)
-      self ! PoisonPill
 
+      val jobsToResubmit = jobsOutstanding.toList.map(details ⇒ JobWaitingDetails(details.sender, details.request))
+      context.become(waitForReady(jobCounter, jobsToResubmit))
+      if (restartCount < restartAttempts) {
+        val rd = (restartCount + 1) * restartDelayIncrements
+        implicit val executionContext = context.system.dispatcher
+        context.system.scheduler.scheduleOnce(rd.seconds, self, RestartLauncher)
+      } else {
+        log.error(s"Maximum number of restarts reached: $restartAttempts")
+        context.become(notReceivingRequests)
+      }
   }
 
   def notReceivingRequests(): Receive = {
+    case JobRequestWithPromise(request, promise) ⇒
+      val reason = new SparkplugException(s"Sparkplug server is down and/or reached the maximum restart attempts. Request '${request.factoryClassName}' not processed.")
+      if (readyPromise.isDefined)
+        readyPromise.get.failure(reason)
+      else
+        sender ! ServerError(reason)
+
     case _ ⇒
   }
 

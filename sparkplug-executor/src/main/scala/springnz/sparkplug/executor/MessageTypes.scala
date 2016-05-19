@@ -9,6 +9,7 @@ object MessageTypes {
 
   case object ServerReady
   case object ShutDown
+  case object CancelAllJobs
 
   case class ServerError(reason: Throwable)
   case class JobRequest(factoryClassName: String, data: Option[Any] = None)
@@ -16,6 +17,7 @@ object MessageTypes {
   case class JobSuccess(jobRequest: JobRequest, response: Any)
   case class JobFailure(jobRequest: JobRequest, reason: Throwable)
 
+  class SparkplugException(message: String) extends Exception(message)
 }
 
 object InternalMessageTypes {
