@@ -3,7 +3,7 @@ package springnz.sparkplug.client
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.testkit.{ ImplicitSender, TestKit }
 import org.scalatest._
-import springnz.sparkplug.executor.MessageTypes.{CancelAllJobs, JobRequest, JobSuccess, ShutDown}
+import springnz.sparkplug.executor.MessageTypes.{ CancelAllJobs, JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.duration._
 

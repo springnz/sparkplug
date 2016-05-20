@@ -80,7 +80,7 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
       }
 
     case CancelAllJobs ⇒
-      log.info(s"Cancelling all Spark Jobs...")
+      log.info(s"Broker cancelling all Spark Jobs...")
       sparkContext.cancelAllJobs()
   }
 }

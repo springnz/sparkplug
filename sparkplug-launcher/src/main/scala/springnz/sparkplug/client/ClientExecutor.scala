@@ -12,6 +12,7 @@ import scala.util.Try
 
 trait ClientExecutor {
   def execute[A](pluginClass: String, data: Option[Any]): Future[A]
+  def cancelJobs(): Unit
   def shutDown(): Unit
 }
 
@@ -81,6 +82,11 @@ object ClientExecutor extends LazyLogging {
             logger.info(s"Future complete request $jobRequest. Return value: $any")
             any.asInstanceOf[A]
         }
+      }
+
+      override def cancelJobs() = {
+        coordinatorFuture.foreach(coordinator ⇒ coordinator ! CancelAllJobs)
+        Await.result(coordinatorFuture, 10.seconds)
       }
 
       override def shutDown(): Unit = {

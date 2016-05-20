@@ -149,7 +149,9 @@ class Coordinator(
       context.actorOf(SingleJobProcessor.props(request, broker, requestor, promise, jobCounter), s"SingleJobProcessor-$jobCounter")
       context become waitForRequests(broker, jobCounter + 1, jobsOutstanding + JobRequestDetails(jobCounter, sender, request))
 
-    case ShutDown ⇒ shutDown(broker)
+    case ShutDown      ⇒ shutDown(broker)
+
+    case CancelAllJobs ⇒ cancelAllJobs(broker)
 
     case JobCompleteIndex(finishedIndex) ⇒
       log.info(s"Received forwarded completion for job: $finishedIndex")
@@ -191,5 +193,9 @@ class Coordinator(
     self ! PoisonPill
   }
 
+  def cancelAllJobs(broker: ActorRef): Unit = {
+    log.info(s"Coordinator telling broker to cancel all jobs...")
+    broker ! CancelAllJobs
+  }
 }
 
