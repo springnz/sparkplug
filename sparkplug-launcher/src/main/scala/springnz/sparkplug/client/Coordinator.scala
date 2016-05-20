@@ -39,8 +39,8 @@ class Coordinator(
   import Constants._
   import Coordinator._
 
-  private val restartAttempts = akkaClientConfig.getInt("restart.attempts")
-  private val restartDelayIncrements = akkaClientConfig.getInt("restart.delayincrements")
+  private val maxRestartAttempts = akkaClientConfig.getInt("restart.max-attempts")
+  private val restartDelayIncrements = akkaClientConfig.getInt("restart.delay-increments")
 
   private var restartCount = 0
 
@@ -124,7 +124,7 @@ class Coordinator(
     }
 
     case RestartLauncher ⇒ {
-      log.info(s"Restarting the server for the ${restartAttempts + 1} (th) time.")
+      log.info(s"Restarting the server for the ${maxRestartAttempts + 1} (th) time.")
       restartCount += 1
       startLauncher
     }
@@ -165,12 +165,12 @@ class Coordinator(
 
       val jobsToResubmit = jobsOutstanding.toList.map(details ⇒ JobWaitingDetails(details.sender, details.request))
       context.become(waitForReady(jobCounter, jobsToResubmit))
-      if (restartCount < restartAttempts) {
+      if (restartCount < maxRestartAttempts) {
         val rd = (restartCount + 1) * restartDelayIncrements
         implicit val executionContext = context.system.dispatcher
         context.system.scheduler.scheduleOnce(rd.seconds, self, RestartLauncher)
       } else {
-        log.error(s"Maximum number of restarts reached: $restartAttempts")
+        log.error(s"Maximum number of restarts reached: $maxRestartAttempts")
         context.become(notReceivingRequests)
       }
   }
