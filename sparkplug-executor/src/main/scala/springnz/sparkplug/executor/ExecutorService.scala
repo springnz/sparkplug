@@ -49,6 +49,7 @@ object ExecutorService extends Logging {
 
     val executorService = new ExecutorService(appName)
     executorService.start(system, sparkClientPath)
+    log.info("Terminating the remote application.")
   }
 }
 
@@ -62,6 +63,8 @@ class ExecutorService(appName: String, brokerName: String = Constants.brokerActo
     val actorOperation = SparkOperation[Unit] { implicit sparkContext ⇒
 
       def postStopAction() = {
+        log.info("Cancelling any jobs (if any are running).")
+        sparkContext.cancelAllJobs()
         log.info("Stopping Spark context.")
         sparkContext.stop()
       }

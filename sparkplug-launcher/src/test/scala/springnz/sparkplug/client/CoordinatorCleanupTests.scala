@@ -3,7 +3,7 @@ package springnz.sparkplug.client
 import akka.actor.{ ActorRef, ActorSystem }
 import akka.testkit.{ ImplicitSender, TestKit }
 import org.scalatest._
-import springnz.sparkplug.executor.MessageTypes.{ JobRequest, JobSuccess, ShutDown }
+import springnz.sparkplug.executor.MessageTypes.{ CancelAllJobs, JobRequest, JobSuccess, ShutDown }
 
 import scala.concurrent.duration._
 
@@ -22,7 +22,15 @@ class CoordinatorCleanupTests(_system: ActorSystem)
       expectMsgType[JobSuccess](30.seconds)
     }
 
-    // TODO: work out a way to kill off the broker to test DeathWatch
+    "cancel all job requests" in {
+      val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+      coordinator ! request
+      Thread.sleep(500)
+      coordinator ! CancelAllJobs
+      Thread.sleep(500)
+      expectMsgType[JobSuccess](30.seconds)
+    }
+
   }
 
   override def beforeAll {

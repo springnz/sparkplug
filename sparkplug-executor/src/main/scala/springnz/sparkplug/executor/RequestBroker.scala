@@ -78,6 +78,10 @@ class RequestBroker(sparkClient: String, postStopAction: ⇒ Unit)(implicit spar
           log.error(message)
           requestor ! JobFailure(job, new SparkPlugException(message))
       }
+
+    case CancelAllJobs ⇒
+      log.info(s"Broker cancelling all Spark Jobs...")
+      sparkContext.cancelAllJobs()
   }
 }
 
