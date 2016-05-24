@@ -96,7 +96,7 @@ class Coordinator(
       log.info(s"Coordinator received a ServerReady message from broker: ${broker.path.toString}")
 
       // Compete the Promise or send ServerReady
-      if (readyPromise.isDefined)
+      if (readyPromise.isDefined && !readyPromise.get.isCompleted)
         readyPromise.get.complete(Success(self))
       else
         context.parent ! ServerReady
@@ -161,7 +161,7 @@ class Coordinator(
       context become waitForRequests(broker, jobCounter, jobsRemaining)
 
     case Terminated(_) ⇒
-      log.info("Server terminated, crashed or timed out. Shutting down the client coordination.")
+      log.info("Server terminated, crashed or timed out. Will attempt to restart.")
 
       val jobsToResubmit = jobsOutstanding.toList.map(details ⇒ JobWaitingDetails(details.sender, details.request))
       context.become(waitForReady(jobCounter, jobsToResubmit))
