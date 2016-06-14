@@ -13,26 +13,28 @@ object OrientRDDFetcher extends Logging {
 
   def select[A: ClassTag](
     className: String,
-    where: Option[String],
+    whatOption: Option[String],
+    whereOption: Option[String],
     docTransform: ODocument ⇒ A,
     orientDBConnector: Option[OrientDBConnector] = None): SparkOperation[RDD[A]] =
     SparkOperation { ctx ⇒
-      val result = where match {
+      val what = whatOption.getOrElse("*")
+      val result = whereOption match {
         case Some(where) ⇒
-          log.info(s"Executing query: select * from [$className] where [$where]")
+          log.info(s"Executing query: SELECT $what FROM $className WHERE $where")
           orientDBConnector match {
             case Some(connector) ⇒
-              ctx.orientDocumentQuery(className, where)(connector)
+              ctx.orientDocumentQuery(className, what, where)(connector)
             case None ⇒
-              ctx.orientDocumentQuery(className, where)
+              ctx.orientDocumentQuery(className, what, where)
           }
         case None ⇒
-          log.info(s"Executing query: select * from [$className]")
+          log.info(s"Executing query: SELECT $what FROM $className")
           orientDBConnector match {
             case Some(connector) ⇒
-              ctx.orientDocumentQuery(className)(connector)
+              ctx.orientDocumentQuery(className, what)(connector)
             case None ⇒
-              ctx.orientDocumentQuery(className)
+              ctx.orientDocumentQuery(className, what)
           }
       }
       result.map(docTransform)

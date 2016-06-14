@@ -34,14 +34,14 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
 
     // select * from className
     val resultAll = execute(
-      OrientRDDFetcher.select(className, None, OrientRDDFetcherTest.docTransformer)
+      OrientRDDFetcher.select(className, Some("id"), None, OrientRDDFetcherTest.docTransformer)
         .map(_.collect().toList)).get
 
     resultAll shouldBe (1 to numDocs).toList
 
     // select * from className where id <= 500
     val resultWithWhereClause = execute(
-      OrientRDDFetcher.select(className, Some("id <= 500"), OrientRDDFetcherTest.docTransformer)
+      OrientRDDFetcher.select(className, None, Some("id <= 500"), OrientRDDFetcherTest.docTransformer)
         .map(_.collect().toList)).get
 
     resultWithWhereClause shouldBe (1 to numDocs / 2).toList
@@ -52,7 +52,7 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
     val operation: SparkOperation[Set[Dictator]] = SparkOperation { ctx ⇒
       val rdd = ctx.parallelize(dictators)
       rdd.saveToOrient("Dictators")
-      val retrievedRDD = OrientRDDFetcher.select[Dictator]("Dictators", Some("year > 1979"), doc ⇒ {
+      val retrievedRDD = OrientRDDFetcher.select[Dictator]("Dictators", None, Some("year > 1979"), doc ⇒ {
         Dictator(doc.field("year").asInstanceOf[Int], doc.field("name").asInstanceOf[String], doc.field("country").asInstanceOf[String])
       })
       retrievedRDD.run(ctx).collect().toSet
