@@ -24,6 +24,7 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
       def newDoc(id: Int) = {
         val doc = new ODocument(className)
         doc.field("id", id)
+        doc.field("value", id)
         doc.save()
       }
       log.info(s"creating class $className ...")
@@ -34,17 +35,29 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
 
     // select * from className
     val resultAll = execute(
-      OrientRDDFetcher.select(className, None, OrientRDDFetcherTest.docTransformer)
+      OrientRDDFetcher.select(className, None, None, OrientRDDFetcherTest.docTransformer)
         .map(_.collect().toList)).get
 
     resultAll shouldBe (1 to numDocs).toList
 
     // select * from className where id <= 500
     val resultWithWhereClause = execute(
-      OrientRDDFetcher.select(className, Some("id <= 500"), OrientRDDFetcherTest.docTransformer)
+      OrientRDDFetcher.select(className, None, Some("id <= 500"), OrientRDDFetcherTest.docTransformer)
         .map(_.collect().toList)).get
 
     resultWithWhereClause shouldBe (1 to numDocs / 2).toList
+
+    // select id from className
+    val fieldNames1 = execute(
+      OrientRDDFetcher.select(className, Some("id"), None, doc ⇒ doc.fieldNames().toList)
+        .map(_.collect())).get.flatten.toSet
+    fieldNames1 shouldBe Set("id")
+
+    // select id, value from className
+    val fieldNames2 = execute(
+      OrientRDDFetcher.select(className, Some("id, value"), None, doc ⇒ doc.fieldNames().toList)
+        .map(_.collect())).get.flatten.toSet
+    fieldNames2 shouldBe Set("id", "value")
   }
 
   "Save SparkRDD to OrientDB" in new SimpleTestContext("") {
@@ -52,7 +65,7 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
     val operation: SparkOperation[Set[Dictator]] = SparkOperation { ctx ⇒
       val rdd = ctx.parallelize(dictators)
       rdd.saveToOrient("Dictators")
-      val retrievedRDD = OrientRDDFetcher.select[Dictator]("Dictators", Some("year > 1979"), doc ⇒ {
+      val retrievedRDD = OrientRDDFetcher.select[Dictator]("Dictators", None, Some("year > 1979"), doc ⇒ {
         Dictator(doc.field("year").asInstanceOf[Int], doc.field("name").asInstanceOf[String], doc.field("country").asInstanceOf[String])
       })
       retrievedRDD.run(ctx).collect().toSet
@@ -65,5 +78,7 @@ class OrientRDDFetcherTest extends WordSpec with ShouldMatchers with ODBMemoryTe
 
 object OrientRDDFetcherTest {
   case class Dictator(year: Int, name: String, country: String)
-  def docTransformer(doc: ODocument) = doc.field("id").asInstanceOf[Int]
+  def docTransformer(doc: ODocument) = {
+    doc.field("id").asInstanceOf[Int]
+  }
 }
