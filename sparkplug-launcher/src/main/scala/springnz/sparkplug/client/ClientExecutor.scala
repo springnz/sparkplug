@@ -26,7 +26,9 @@ object ClientExecutor extends LazyLogging {
     akkaClientConfig: Config = defaultClientAkkaConfig,
     sparkConfig: Config = defaultSparkConfig,
     akkaRemoteConfig: Option[Config] = None,
-    jarPath: Option[String] = None)
+    jarPath: Option[String] = None,
+    cancelJobsTimeout: Duration = 10.seconds,
+    shutdownTimeout: Duration = 15.seconds)
 
   def apply[A](pluginClass: String, data: Option[Any], params: ClientExecutorParams = ClientExecutorParams())(implicit ec: ExecutionContext): Future[A] = {
     val executor = create(params)
@@ -84,17 +86,20 @@ object ClientExecutor extends LazyLogging {
         }
       }
 
-      override def cancelJobs() = {
+      override def cancelJobs(): Unit = {
         coordinatorFuture.foreach(coordinator ⇒ coordinator ! CancelAllJobs)
-        Await.result(coordinatorFuture, 10.seconds)
+        Await.result(coordinatorFuture, params.cancelJobsTimeout)
       }
 
       override def shutDown(): Unit = {
         coordinatorFuture.foreach(coordinator ⇒ coordinator ! ShutDown)
-        Await.result(coordinatorFuture, 10.seconds)
-        // give it 20 seconds to try to shut down the Client and Server, then just terminate the actorSystem
-        logger.info(s"ActorSystem '$actorSystemName' shutting down...")
-        actorSystem.shutdown()
+        try {
+          Await.result(coordinatorFuture, params.shutdownTimeout)
+        } finally {
+          // give it x seconds to try to shut down the Client and Server, then just terminate the actorSystem
+          logger.info(s"ActorSystem '$actorSystemName' shutting down...")
+          actorSystem.shutdown()
+        }
       }
     }
   }
