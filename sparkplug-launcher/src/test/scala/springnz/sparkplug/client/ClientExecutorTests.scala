@@ -20,7 +20,6 @@ trait ClientExecutableFixture extends BeforeAndAfterEach { this: Suite ⇒
     try super.afterEach()
     finally {
       executor.shutDown()
-      Thread.sleep(1000)
       // it seems to need to be give a chance to clean up (I think shutdown happens asnychronously)
     }
   }
