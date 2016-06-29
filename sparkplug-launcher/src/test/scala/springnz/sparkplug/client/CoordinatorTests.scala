@@ -52,8 +52,7 @@ class CoordinatorTests(_system: ActorSystem)
 
   override def afterAll {
     system.actorSelection(s"/user/TestCoordinator") ! ShutDown
-    TestKit.shutdownActorSystem(system)
-    Thread.sleep(1000)
+    TestKit.shutdownActorSystem(system, verifySystemShutdown = true)
   }
 
 }

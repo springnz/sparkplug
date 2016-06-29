@@ -99,6 +99,7 @@ object ClientExecutor extends LazyLogging {
           // give it x seconds to try to shut down the Client and Server, then just terminate the actorSystem
           logger.info(s"ActorSystem '$actorSystemName' shutting down...")
           actorSystem.shutdown()
+          actorSystem.awaitTermination(params.shutdownTimeout)
         }
       }
     }
