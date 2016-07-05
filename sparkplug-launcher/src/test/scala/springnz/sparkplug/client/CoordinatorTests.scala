@@ -1,6 +1,6 @@
 package springnz.sparkplug.client
 
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.{ExtendedActorSystem, ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
@@ -11,10 +11,14 @@ import springnz.sparkplug.executor.MessageTypes.{ JobFailure, JobRequest, JobSuc
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import scala.collection.JavaConverters._
+
 class CoordinatorTests(_system: ActorSystem)
     extends TestKit(_system) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with Matchers {
 
-  def this() = this(ActorSystem(Constants.actorSystemName, ClientExecutor.defaultClientAkkaConfig))
+  def this() = this(ActorSystem(Constants.actorSystemName, ConfigFactory.parseMap(Map(
+    "akka.remote.netty.tcp.port" -> new Integer(0)
+  ).asJava).withFallback(ClientExecutor.defaultClientAkkaConfig)))
 
   var coordinator: ActorRef = null
 
@@ -47,7 +51,13 @@ class CoordinatorTests(_system: ActorSystem)
 
   override def beforeAll {
     val configSection = s"sparkplug.${springnz.sparkplug.executor.Constants.defaultAkkaRemoteConfigSection}"
-    coordinator = system.actorOf(Coordinator.props(None, akkaRemoteConfig = Some(ConfigFactory.load.getConfig(configSection))), "TestCoordinator")
+    val port = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress.port.get
+    val akkaClientConfig = ConfigFactory.parseMap(Map(
+      "akka.remote.netty.tcp.port" -> new Integer(port)
+    ).asJava).withFallback(ClientExecutor.defaultClientAkkaConfig)
+    coordinator = system.actorOf(Coordinator.props(None,
+      akkaRemoteConfig = Some(ConfigFactory.load.getConfig(configSection)),
+      akkaClientConfig = akkaClientConfig), "TestCoordinator")
   }
 
   override def afterAll {
