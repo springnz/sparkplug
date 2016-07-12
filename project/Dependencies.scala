@@ -3,17 +3,19 @@ import sbt._
 object Dependencies {
 
   // Version Numbers
-  val sparkVersion = "1.5.1"
+  val sparkVersion = "1.6.2"
   val akkaVersion = "2.3.12"
   val elasticsearchLibVersion = "0.4.0"
   val orientDBMigrationsVersion = "2.10.0"
   val sparkOrientConnectorVersion = "1.7.0"
 
   val cassandraConnectorVersionMap = Map(
+    "1.6.2" -> "1.6.0",
     "1.5.1" -> "1.5.0",
     "1.4.1" -> "1.4.0")
 
   val elasticSearchSparkVersionMap = Map(
+    "1.6.2" -> "2.3.2",
     "1.5.1" -> "2.2.0",
     "1.4.1" -> "2.2.0-m1")
 
