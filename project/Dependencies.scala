@@ -5,7 +5,7 @@ object Dependencies {
   // Version Numbers
   val sparkVersion = "1.6.2"
   val akkaVersion = "2.3.12"
-  val elasticsearchLibVersion = "0.4.0"
+  val elasticsearchLibVersion = "0.6.0"
   val orientDBMigrationsVersion = "2.10.0"
   val sparkOrientConnectorVersion = "1.7.0"
 
