@@ -6,11 +6,11 @@ import org.json4s.JsonAST.JValue
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest._
-import springnz.elasticsearch.server.{ ESServer, ESServerParams }
+import springnz.elasticsearch.server.{ ESServer, ESServerConfig }
 import springnz.sparkplug.core.SparkOperation
 import springnz.sparkplug.elasticsearch.ESExporter.{ ESExportDetails, ESExporterParams }
 import springnz.sparkplug.testkit.SimpleTestContext
-import springnz.sparkplug.util.{ Logging, Json4sUtil }
+import springnz.sparkplug.util.{ Json4sUtil, Logging }
 
 import scala.util.{ Success, Try }
 
@@ -27,7 +27,7 @@ class ESExporterTest extends fixture.WordSpec with ShouldMatchers with Logging {
   val port = 9250
 
   override def withFixture(test: OneArgTest) = {
-    val server = new ESServer("test-cluster", ESServerParams(httpPort = Some(port)))
+    val server = new ESServer(ESServerConfig("test-cluster", httpPort = Some(port)))
 
     try {
       server.start()
