@@ -18,6 +18,9 @@ object OrientRDDFetcher extends Logging {
     docTransform: ODocument ⇒ A,
     orientDBConnector: Option[OrientDBConnector] = None): SparkOperation[RDD[A]] =
     SparkOperation { ctx ⇒
+      orientDBConnector.foreach { conn ⇒
+        log.info(s"Connecting to OrientDb with protocol '${conn.connProtocol}' and  remote connection string: '${conn.connStringRemote}'")
+      }
       val what = whatOption.getOrElse("*")
       val result = whereOption match {
         case Some(where) ⇒
