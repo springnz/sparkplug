@@ -1,0 +1,10 @@
+language: scala
+scala:
+   - 2.11.7
+notifications:
+  email:
+    recipients:
+      - stephenzoio@yahoo.com
+jdk:
+  - oraclejdk8
+script: sbt pack test
