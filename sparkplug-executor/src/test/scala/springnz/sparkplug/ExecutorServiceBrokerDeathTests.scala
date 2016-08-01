@@ -23,7 +23,7 @@ class ExecutorServiceBrokerDeathTests(_system: ActorSystem)
   "deathwatch on client (base case)" in new ExecutorServiceFixture(self, "client1", "testBroker1") {
     val requestBroker = system.actorSelection(s"/user/testBroker1")
     // give it something to do for a while
-    val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+    val request = JobRequest("springnz.sparkplug.executor.WaitPlugin", None)
     Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
     expectMsg(3.seconds, ServerReady)
@@ -34,7 +34,7 @@ class ExecutorServiceBrokerDeathTests(_system: ActorSystem)
   "deathwatch on client (with poison pill should terminate server)" in new ExecutorServiceFixture(self, "client2", "testBroker2") {
     val requestBroker = system.actorSelection(s"/user/testBroker2")
     // give it something to do for a while
-    val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+    val request = JobRequest("springnz.sparkplug.executor.WaitPlugin", None)
     Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
     clientActor ! PoisonPill

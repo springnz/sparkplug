@@ -17,13 +17,13 @@ class CoordinatorCleanupTests(_system: ActorSystem)
   "client coordinator" should {
 
     "successfuly execute a job request" in {
-      val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+      val request = JobRequest("springnz.sparkplug.executor.WaitPlugin", None)
       coordinator ! request
       expectMsgType[JobSuccess](30.seconds)
     }
 
     "cancel all job requests" in {
-      val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", None)
+      val request = JobRequest("springnz.sparkplug.executor.WaitPlugin", None)
       coordinator ! request
       Thread.sleep(500)
       coordinator ! CancelAllJobs

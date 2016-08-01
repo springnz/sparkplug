@@ -26,7 +26,7 @@ class ExecutorServiceStandardTests(_system: ActorSystem)
 
   "successfuly execute a job request via a plugin" in new ExecutorServiceFixture(self, "client2", "testBroker2") {
     val requestBroker = system.actorSelection(s"/user/testBroker2")
-    val request = JobRequest("springnz.sparkplug.examples.LetterCountPlugin", None)
+    val request = JobRequest("springnz.sparkplug.executor.LetterCountPlugin", None)
     Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
     expectMsg(3.seconds, ServerReady)
@@ -37,7 +37,7 @@ class ExecutorServiceStandardTests(_system: ActorSystem)
     import scala.concurrent._
     val requestBroker = system.actorSelection(s"/user/testBroker3")
     // give it something to do for a while
-    val request = JobRequest("springnz.sparkplug.examples.WaitPlugin", Some(6000))
+    val request = JobRequest("springnz.sparkplug.executor.WaitPlugin", Some(6000))
     Await.ready(readyPromise.future, 3.seconds)
     requestBroker ! request
     blocking { Thread.sleep(1000) }

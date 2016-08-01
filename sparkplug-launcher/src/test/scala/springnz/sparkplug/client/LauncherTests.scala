@@ -13,7 +13,7 @@ class LauncherTests extends WordSpec with ShouldMatchers with Logging {
     "launch spark letter count process (without Akka)" in {
       val launcher = Launcher.launch(
         "",
-        root / System.getProperty("user.dir") / "target/pack/lib", "**/sparkplug-examples*", "springnz.sparkplug.examples.LetterCount",
+        root / System.getProperty("user.dir") / "target/pack/lib", "**/sparkplug-examples*", "springnz.sparkplug.executor.LetterCount",
         ClientExecutor.defaultSparkConfig,
         akkaRemoteConfig = None)
       val result = Await.result(launcher.get, 20.seconds)

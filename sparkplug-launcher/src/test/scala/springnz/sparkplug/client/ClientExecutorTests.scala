@@ -30,30 +30,30 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
 
   "client executor" should {
     "Calculate a single job" in {
-      val future = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val future = executor.execute[Any]("springnz.sparkplug.executor.LetterCountPlugin", None)
       val result = Await.result(future, 30.seconds)
       result shouldBe ((2, 2))
     }
 
     "Handle an error in a job request" in {
-      val future = executor.execute[Any]("springnz.sparkplug.examples.InvalidPluginName", None)
+      val future = executor.execute[Any]("springnz.sparkplug.executor.InvalidPluginName", None)
       intercept[ClassNotFoundException] {
         Await.result(future, 30.seconds)
       }
     }
 
     "Still carry on working after a failure" in {
-      val futureError = executor.execute[Any]("springnz.sparkplug.examples.InvalidPluginName", None)
+      val futureError = executor.execute[Any]("springnz.sparkplug.executor.InvalidPluginName", None)
       intercept[ClassNotFoundException] {
         Await.result(futureError, 30.seconds)
       }
-      val futureOk = executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val futureOk = executor.execute[Any]("springnz.sparkplug.executor.LetterCountPlugin", None)
       val result = Await.result(futureOk, 30.seconds)
       result shouldBe ((2, 2))
     }
 
     "Calculate a sequence of job requests in parallel" in {
-      val futures: List[Future[Any]] = List.fill(10) { executor.execute[Any]("springnz.sparkplug.examples.LetterCountPlugin", None) }
+      val futures: List[Future[Any]] = List.fill(10) { executor.execute[Any]("springnz.sparkplug.executor.LetterCountPlugin", None) }
 
       implicit val ec = scala.concurrent.ExecutionContext.global
       val sequence: Future[List[Any]] = Future.sequence(futures)
@@ -70,7 +70,7 @@ class ClientExecutorTests extends WordSpec with ShouldMatchers with Logging with
     }
 
     "Handle immediate timeout" in {
-      val future = executor.execute[Any]("springnz.sparkplug.examples.WaitPlugin", None)
+      val future = executor.execute[Any]("springnz.sparkplug.executor.WaitPlugin", None)
       Try {
         Await.result(future, 0.seconds)
       }
@@ -84,7 +84,7 @@ class ClientExecutorSingleTests extends WordSpec with ShouldMatchers with Loggin
   "client executor" should {
     "Calculate a single job" in {
       implicit val ec = scala.concurrent.ExecutionContext.global
-      val future = ClientExecutor[(Long, Long)]("springnz.sparkplug.examples.LetterCountPlugin", None)
+      val future = ClientExecutor[(Long, Long)]("springnz.sparkplug.executor.LetterCountPlugin", None)
       val result = Await.result(future, 30.seconds)
       result shouldBe ((2, 2))
     }

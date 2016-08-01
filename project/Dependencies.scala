@@ -5,31 +5,11 @@ object Dependencies {
   // Version Numbers
   val sparkVersion = "1.6.2"
   val akkaVersion = "2.3.12"
-  val elasticsearchLibVersion = "0.6.0"
-  val orientDBMigrationsVersion = "2.10.0"
-  val sparkOrientConnectorVersion = "1.7.1"
-
-  val cassandraConnectorVersionMap = Map(
-    "1.6.2" -> "1.6.0",
-    "1.5.1" -> "1.5.0",
-    "1.4.1" -> "1.4.0")
-
-  val elasticSearchSparkVersionMap = Map(
-    "1.6.2" -> "2.3.2",
-    "1.5.1" -> "2.2.0",
-    "1.4.1" -> "2.2.0-m1")
 
   // Spark
   val sparkCore = "org.apache.spark" %% "spark-core" % sparkVersion % Provided
   val sparkSql = "org.apache.spark" %% "spark-sql" % sparkVersion % Provided
   val sparkLauncher = "org.apache.spark" %% "spark-launcher" % sparkVersion % Provided
-
-  // Spark Data
-  val sparkCassandraConnector = "com.datastax.spark" %% "spark-cassandra-connector" % cassandraConnectorVersionMap(sparkVersion)
-  val sparkESConnector = "org.elasticsearch" %% "elasticsearch-spark" % elasticSearchSparkVersionMap(sparkVersion)
-
-  // Other Data Drivers
-  val mySqlDriver = "mysql" % "mysql-connector-java" % "5.1.36"
 
   // Akka Dependencies
   val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test
@@ -54,41 +34,19 @@ object Dependencies {
   val json4sJackson = "org.json4s" %% "json4s-jackson" % "3.2.10"
   val betterFiles = "com.github.pathikrit" %% "better-files" % "2.14.0"
 
-  // SpringNZ projects
-  val elasticSearchLib = "springnz" %% "elasticsearch-lib" % elasticsearchLibVersion
-  val sparkOrientDBConnector = "springnz" %% "spark-orientdb-connector" % sparkOrientConnectorVersion
-
-  // for spark-orientdb-connector
-  val orientDBMigrations = "springnz" %% "orientdb-migrations" % orientDBMigrationsVersion
-  val orientGraphDB = "com.orientechnologies" % "orientdb-graphdb" % "2.1.5"
-  val sparkGraphx = "org.apache.spark" %% "spark-graphx" % sparkVersion % Provided
-  val tinkerpop = "com.tinkerpop.blueprints" % "blueprints-core" % "2.6.0"
-
   // Share test
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % Test
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % Test
 
   val sparkCoreDependencies = Seq(scalaz, sparkCore, sparkSql)
-  val sparkDataDependencies = Seq(sparkCassandraConnector, sparkESConnector, mySqlDriver, elasticSearchLib)
 
   val akkaDependencies = Seq(akkaActors, akkaTestkit, akkaRemote, akkaSlf4j)
-
-  val sparkOrientConnectorDependencies = Seq(orientDBMigrations, sparkOrientDBConnector, orientGraphDB, sparkGraphx, tinkerpop)
 
   val sharedCompileDependencies = Seq(slf4jApi, json4sJackson, betterFiles)
   val sharedTestDependencies = Seq(scalaTest, scalaCheck)
   val sharedDependencies = sharedCompileDependencies ++ sharedTestDependencies
 
   val sparkCoreLibDependencies = Seq(scalaLogging) ++ sparkCoreDependencies
-
-  val sparkExtraLibDependencies = sparkCoreLibDependencies ++
-    sparkDataDependencies ++
-    sparkOrientConnectorDependencies ++
-    logBackTestDependencies ++
-    sharedDependencies
-
-  val sparkExampleLibDependencies = sparkExtraLibDependencies ++
-    logBackDependencies
 
   val sparkExecutorLibDependencies = sparkCoreLibDependencies ++
     akkaDependencies ++
@@ -102,7 +60,7 @@ object Dependencies {
 
   // Dependency overrides
   // This override is needed because Spark uses a later version of Jackson that breaks play-json
-  val jacksonOverride = "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.4"
+//  val jacksonOverride = "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.4"
   val guavaOverride = "com.google.guava" % "guava" % "18.0"
 
   val sparkOverrides = Set(
@@ -111,6 +69,6 @@ object Dependencies {
     "org.apache.spark" %% "spark-launcher" % sparkVersion
   )
 
-  val dependencyOverridesSet = Set(jacksonOverride, guavaOverride) ++ sparkOverrides
+  val dependencyOverridesSet = Set(/*jacksonOverride,*/ guavaOverride) ++ sparkOverrides
 }
 

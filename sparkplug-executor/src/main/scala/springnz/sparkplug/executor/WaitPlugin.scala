@@ -1,4 +1,4 @@
-package springnz.sparkplug.examples
+package springnz.sparkplug.executor
 
 import springnz.sparkplug.core.{ SparkOperation, SparkPlugin }
 import springnz.sparkplug.util.Logging

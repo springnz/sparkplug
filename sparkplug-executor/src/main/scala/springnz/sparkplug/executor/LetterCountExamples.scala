@@ -1,18 +1,14 @@
-package springnz.sparkplug.examples
+package springnz.sparkplug.executor
 
-import springnz.sparkplug.core.SparkPlugin
 import org.apache.spark.rdd.RDD
-import org.joda.time.DateTime
-import springnz.sparkplug.core._
-
-import better.files._
+import springnz.sparkplug.core.{ SparkPlugin, _ }
 import springnz.sparkplug.util.Logging
 
 import scala.util.Try
 
 object LetterCount extends LocalExecutable("LetterCount") with Logging {
   def main(args: Array[String]): Unit = {
-    log.info(s"StartLetterCount: ${DateTime.now()}")
+    log.info(s"StartLetterCount...")
     val result: Try[(Long, Long)] = executor.execute((new LetterCount)())
     log.info(s"Result of LetterCount.main: $result")
   }
